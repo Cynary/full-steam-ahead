@@ -20,6 +20,7 @@ finish-args:
   - --filesystem=xdg-data/Steam:rw # Steam (non-Flatpak)
   - --filesystem=~/.steam:rw # Steam (non-Flatpak, legacy path)
   - --filesystem=~/.var/app/com.valvesoftware.Steam:rw # Steam (Flatpak)
+  - --filesystem=~/snap/steam/common/.local/share/Steam:rw # Steam (Snap)
 
   - --filesystem=~/.config/heroic:rw # Heroic (non-Flatpak)
   - --filesystem=~/.var/app/com.heroicgameslauncher.hgl:rw # Heroic (Flatpak)
