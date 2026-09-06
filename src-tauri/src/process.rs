@@ -1,5 +1,8 @@
 use std::process::{Child, Command, Output};
 
+#[cfg(unix)]
+use crate::importers::host_command;
+
 #[cfg(windows)]
 const CREATE_NO_WINDOW: u32 = 0x0800_0000;
 
@@ -60,9 +63,9 @@ pub fn is_process_running(process_name: &str) -> bool {
     found
 }
 
-#[cfg(not(windows))]
+#[cfg(unix)]
 pub fn is_process_running(process_name: &str) -> bool {
-    Command::new("pgrep")
+    host_command("pgrep")
         .args(["-x", process_name])
         .output()
         .map(|output| output.status.success())
@@ -82,7 +85,7 @@ pub fn stop_steam() -> std::io::Result<Output> {
 
     #[cfg(not(windows))]
     {
-        Command::new("pkill")
+        host_command("pkill")
             .args(["-x", steam_process_name()])
             .output()
     }
@@ -107,9 +110,9 @@ pub fn restart_steam(install_path: &std::path::Path) -> std::io::Result<Option<C
     {
         let steam = install_path.join("steam.sh");
         if steam.exists() {
-            return Command::new(steam).spawn().map(Some);
+            return host_command(&steam.to_string_lossy()).spawn().map(Some);
         }
-        return Command::new("steam").spawn().map(Some);
+        return host_command("steam").spawn().map(Some);
     }
 
     Ok(None)
