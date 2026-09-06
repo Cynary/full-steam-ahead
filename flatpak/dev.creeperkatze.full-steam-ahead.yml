@@ -37,18 +37,33 @@ finish-args:
 modules:
   - name: full-steam-ahead
     buildsystem: simple
+    build-options:
+      append-path: /run/build/full-steam-ahead/rust-toolchain/bin:/run/build/full-steam-ahead/node/bin:/run/build/full-steam-ahead/pnpm/bin
+      env:
+        CARGO_HOME: /run/build/full-steam-ahead/cargo
     sources:
-      - type: file
-        url: https://github.com/creeperkatze/full-steam-ahead/releases/download/v1.3.3/full-steam-ahead-1.3.3-linux-amd64.AppImage
-        sha256: 13c5b316b52493b0e7e1a894737e5398c39a6764c1117cdecb882a162bdd2356
-        dest-filename: full-steam-ahead.AppImage
+      - type: git
+        url: https://github.com/creeperkatze/full-steam-ahead.git
+        tag: v1.3.3
+        commit: 6c7a3f7678b29a8fabb4b538cc2f317a29280d06
         x-checker-data:
-          type: json
-          url: https://api.github.com/repos/creeperkatze/full-steam-ahead/releases/latest
-          version-query: .tag_name | ltrimstr("v")
-          url-query: .assets[] | select(.name | test("linux-amd64\\.AppImage$")) | .browser_download_url
-          release-url-template: https://github.com/creeperkatze/full-steam-ahead/releases/tag/v$version
-          is-main-source: true
+          type: git
+          tag-pattern: ^v([\d.]+)$
+      - type: archive
+        url: https://static.rust-lang.org/dist/2026-09-03/rust-1.98.1-x86_64-unknown-linux-gnu.tar.xz
+        sha256: 5326b36c53de11d148c8f8dab6553a3d1006c2cfd32123683073fad3c302605b
+        dest: rust-dist
+      - type: archive
+        url: https://nodejs.org/dist/v22.23.2/node-v22.23.2-linux-x64.tar.xz
+        sha256: d60acfe00a2932254bb0ad20e01b0d74397a0875595de719654b214f4b03f307
+        dest: node
+        strip-components: 1
+      - type: archive
+        url: https://registry.npmjs.org/pnpm/-/pnpm-11.1.2.tgz
+        sha256: bfe4d2b2c7a3210565bba62929f9efe493eb5f24627201a102ea4514eae8cf80
+        dest: pnpm
+      - cargo-sources.json
+      - node-sources.json
       - type: file
         path: dev.creeperkatze.full-steam-ahead.desktop
       - type: file
@@ -62,9 +77,14 @@ modules:
       - type: file
         path: dev.creeperkatze.full-steam-ahead.svg
     build-commands:
-      - chmod +x full-steam-ahead.AppImage
-      - ./full-steam-ahead.AppImage --appimage-extract
-      - install -Dm755 squashfs-root/usr/bin/full-steam-ahead /app/bin/full-steam-ahead
+      - ./rust-dist/install.sh --prefix=/run/build/full-steam-ahead/rust-toolchain --disable-ldconfig --without=rust-docs
+      - ln -s pnpm.cjs pnpm/bin/pnpm
+      - pnpm install --offline
+      - pnpm tauri build --bundles deb
+      - mkdir deb-extract
+      - ar -x src-tauri/target/release/bundle/deb/*.deb --output deb-extract
+      - tar -C deb-extract -xf deb-extract/data.tar.*
+      - install -Dm755 deb-extract/usr/bin/full-steam-ahead -t /app/bin/
       - install -Dm644 dev.creeperkatze.full-steam-ahead.desktop -t /app/share/applications/
       - install -Dm644 dev.creeperkatze.full-steam-ahead.metainfo.xml -t /app/share/metainfo/
       - install -Dm644 dev.creeperkatze.full-steam-ahead-128.png /app/share/icons/hicolor/128x128/apps/dev.creeperkatze.full-steam-ahead.png
