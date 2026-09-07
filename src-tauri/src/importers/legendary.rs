@@ -1,6 +1,6 @@
 use crate::{
     error::AppResult,
-    importers::{host_command, launcher_candidate},
+    importers::{host_binary_path, host_command, launcher_candidate},
     models::{ImportCandidate, ImportSource, SteamUser},
 };
 use serde::Deserialize;
@@ -27,7 +27,7 @@ pub fn scan(user: &SteamUser, custom_path: Option<&Path>) -> AppResult<Vec<Impor
                 ImportSource::Legendary,
                 "legendary",
                 game.title,
-                executable.clone().into(),
+                host_binary_path(&executable),
                 format!("launch {}", game.app_name),
                 vec!["Legendary".to_string()],
             )

@@ -1,15 +1,16 @@
 use crate::{
     error::AppResult,
-    importers::{host_command, launcher_candidate},
+    importers::{host_binary_path, host_command, launcher_candidate},
     models::{ImportCandidate, ImportSource, SteamUser},
 };
 use serde::Deserialize;
 use std::{collections::HashMap, path::Path};
 
 pub fn scan(user: &SteamUser, custom_path: Option<&Path>) -> AppResult<Vec<ImportCandidate>> {
+    // Steam needs an absolute path in the shortcut
     let exe = custom_path
         .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or_else(|| "flatpak".to_string());
+        .unwrap_or_else(|| host_binary_path("flatpak").display().to_string());
 
     let stdout = host_command(&exe)
         .args([

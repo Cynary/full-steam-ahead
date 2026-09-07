@@ -1,6 +1,6 @@
 use crate::{
     error::AppResult,
-    importers::{host_command, launcher_candidate},
+    importers::{host_binary_path, host_command, launcher_candidate},
     models::{ImportCandidate, ImportSource, SteamUser},
 };
 use serde::Deserialize;
@@ -35,7 +35,7 @@ pub fn scan(user: &SteamUser, custom_path: Option<&Path>) -> AppResult<Vec<Impor
                 ImportSource::Lutris,
                 "lutris",
                 game.name,
-                exe.into(),
+                host_binary_path(&exe),
                 opts,
                 vec!["Lutris".to_string()],
             )

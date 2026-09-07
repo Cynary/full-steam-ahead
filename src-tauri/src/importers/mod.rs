@@ -54,6 +54,51 @@ fn host_command_impl(exe: &str, in_sandbox: bool) -> std::process::Command {
     }
 }
 
+/// Resolves a bare command name to its absolute path on the host.
+#[cfg(unix)]
+pub fn host_binary_path(name: &str) -> PathBuf {
+    if name.contains('/') {
+        return PathBuf::from(name);
+    }
+
+    let cache = HOST_BINARIES.get_or_init(Default::default);
+    if let Some(cached) = cache.lock().ok().and_then(|paths| paths.get(name).cloned()) {
+        return cached;
+    }
+
+    let resolved =
+        resolve_host_binary(name).unwrap_or_else(|| PathBuf::from("/usr/bin").join(name));
+    if let Ok(mut paths) = cache.lock() {
+        paths.insert(name.to_string(), resolved.clone());
+    }
+    resolved
+}
+
+#[cfg(unix)]
+static HOST_BINARIES: std::sync::OnceLock<
+    std::sync::Mutex<std::collections::HashMap<String, PathBuf>>,
+> = std::sync::OnceLock::new();
+
+#[cfg(unix)]
+fn resolve_host_binary(name: &str) -> Option<PathBuf> {
+    let output = host_command("sh")
+        .arg("-c")
+        .arg(format!("command -v {name}"))
+        .output()
+        .ok()?;
+    parse_command_v(&String::from_utf8_lossy(&output.stdout))
+}
+
+/// Takes the first absolute path
+#[cfg(unix)]
+fn parse_command_v(stdout: &str) -> Option<PathBuf> {
+    stdout
+        .lines()
+        .map(str::trim)
+        .find(|line| line.starts_with('/'))
+        .map(PathBuf::from)
+}
+
 /// Returns the `steamapps/compatdata` directory under the detected Steam install.
 #[cfg(unix)]
 pub fn compat_data_dir() -> Option<PathBuf> {
@@ -170,6 +215,29 @@ mod tests {
         assert_eq!(cmd.get_program(), "flatpak-spawn");
         let args: Vec<_> = cmd.get_args().collect();
         assert_eq!(args, ["--host", "flatpak"]);
+    }
+
+    #[test]
+    fn command_v_output_is_read_as_a_path() {
+        assert_eq!(
+            parse_command_v("/usr/bin/flatpak\n"),
+            Some(PathBuf::from("/usr/bin/flatpak"))
+        );
+    }
+
+    #[test]
+    fn shell_builtins_and_empty_output_are_rejected() {
+        // `command -v` prints the bare name for builtins and nothing for unknown commands
+        assert_eq!(parse_command_v("flatpak\n"), None);
+        assert_eq!(parse_command_v(""), None);
+    }
+
+    #[test]
+    fn explicit_paths_are_used_as_given() {
+        assert_eq!(
+            host_binary_path("/opt/custom/flatpak"),
+            PathBuf::from("/opt/custom/flatpak")
+        );
     }
 
     #[test]
