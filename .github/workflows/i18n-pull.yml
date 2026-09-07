@@ -32,10 +32,15 @@ jobs:
           upload_translations: false
           download_translations: true
           push_translations: true
-          localization_branch_name: i18n/crowdin-translations
+          localization_branch_name: crowdin/new-translations
           commit_message: 'New translations from Crowdin'
           create_pull_request: true
           pull_request_title: 'New translations from Crowdin'
+          pull_request_body: |
+            Automated by [`i18n-pull.yml`](${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/.github/workflows/i18n-pull.yml).
+
+            - 🌐 [Contribute to translations on Crowdin](https://crowdin.com/project/full-steam-ahead)
+            - 🔄 [Re-run the workflow to update this PR](${{ github.server_url }}/${{ github.repository }}/actions/workflows/i18n-pull.yml)
         env:
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}
