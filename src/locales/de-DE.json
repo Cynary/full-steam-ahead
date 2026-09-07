@@ -12,7 +12,7 @@
 		"missing": "Fehlt",
 		"officialSteam": "Offizielles Steam",
 		"localFile": "Lokale Datei",
-		"existingCustom": "",
+		"existingCustom": "Vorhanden",
 		"steamGridDb": "SteamGridDB",
 		"unknown": "Unbekannt"
 	},
@@ -71,16 +71,16 @@
 	"artworkView": {
 		"selectGamesPrompt": "Wähle Spiele aus, bevor du das Artwork überprüfst.",
 		"slots": {
-			"header": "Kopfzeile",
+			"header": "Header",
 			"capsule": "Kapsel",
-			"hero": "Hintergrund",
+			"hero": "Hero",
 			"logo": "Logo",
 			"icon": "Symbol"
 		},
 		"pickLocalArtworkTitle": "Lokales Artwork auswählen",
 		"browseSteamGridDbTitle": "SteamGridDB durchsuchen",
 		"useOfficialArtworkTitle": "Offizielles Steam-Artwork verwenden",
-		"deleteArtworkTitle": ""
+		"deleteArtworkTitle": "Artwork löschen"
 	},
 	"reviewView": {
 		"preparingPreview": "Vorschau wird vorbereitet...",
@@ -108,8 +108,8 @@
 		"allDoneSubtitle": "Steam-Verknüpfungen und Artwork wurden aktualisiert.",
 		"changesApplied": "Änderungen angewendet",
 		"backupsCreated": "Sicherungen erstellt",
-		"kofiTitle": "",
-		"kofiSubtitle": "",
+		"kofiTitle": "Gefällt dir Full Steam Ahead?",
+		"kofiSubtitle": "Kauf mir doch einen Kaffee auf Ko-fi",
 		"starting": "Wird gestartet..."
 	},
 	"appShell": {
@@ -120,10 +120,10 @@
 		"onGithub": "Auf GitHub"
 	},
 	"updateModal": {
-		"title": "",
-		"description": "",
-		"later": "",
-		"download": ""
+		"title": "Neue Version verfügbar",
+		"description": "Version {latest} ist verfügbar. Du nutzt derzeit {current}.",
+		"later": "Später",
+		"download": "Release ansehen"
 	},
 	"steamGridDbBrowser": {
 		"searchPlaceholder": "SteamGridDB durchsuchen…",
@@ -137,7 +137,7 @@
 			"steam": "Steam",
 			"sources": "Quellen",
 			"artwork": "Artwork",
-			"data": "",
+			"data": "Daten",
 			"backups": "Sicherungen",
 			"debug": "Debug"
 		},
@@ -169,8 +169,8 @@
 				"dark": "Dunkel"
 			},
 			"updateNotifications": {
-				"label": "",
-				"description": ""
+				"label": "Update-Benachrichtigungen",
+				"description": "Zeigt eine Benachrichtigung an, wenn eine neue Version der App verfügbar ist."
 			}
 		},
 		"steam": {
@@ -188,8 +188,8 @@
 				"description": "Gruppiert importierte Spiele in eine Sammlung für jeden Launcher."
 			},
 			"addSelfShortcut": {
-				"label": "",
-				"description": ""
+				"label": "Eigene Verknüpfung hinzufügen",
+				"description": "Fügt Full Steam Ahead selbst zu Steam hinzu, praktisch zum Starten aus dem Spielmodus des Steam Deck."
 			},
 			"steamLocation": {
 				"label": "Steam-Installationsort",
@@ -199,11 +199,11 @@
 		"artwork": {
 			"title": "Artwork",
 			"defaultSource": {
-				"label": "",
-				"description": "",
-				"none": "",
-				"steam": "",
-				"steamGridDb": ""
+				"label": "Standard-Artwork-Quelle",
+				"description": "Wähle, von welcher Quelle beim Scannen nach Spielen automatisch Artwork geladen werden soll.",
+				"none": "Keine",
+				"steam": "Steam",
+				"steamGridDb": "SteamGridDB"
 			},
 			"enableSteamGridDb": {
 				"label": "SteamGridDB aktivieren",
@@ -224,36 +224,36 @@
 			"title": "Quellen"
 		},
 		"data": {
-			"title": "",
+			"title": "Daten",
 			"export": {
-				"label": "",
-				"description": "",
-				"buttonLabel": "",
-				"success": "",
-				"error": "",
+				"label": "Einstellungen exportieren",
+				"description": "Speichert deine aktuellen Einstellungen in einer JSON-Datei.",
+				"buttonLabel": "Exportieren",
+				"success": "Einstellungen erfolgreich exportiert.",
+				"error": "Export fehlgeschlagen.",
 				"warning": {
-					"title": "",
-					"description": "",
-					"confirm": ""
+					"title": "Einstellungen exportieren?",
+					"description": "Die exportierte Datei enthält deinen SteamGridDB-API-Schlüssel im Klartext. Bewahre sie sicher auf und teile sie nicht.",
+					"confirm": "Exportieren"
 				}
 			},
 			"import": {
-				"label": "",
-				"description": "",
-				"buttonLabel": "",
-				"success": "",
-				"error": ""
+				"label": "Einstellungen importieren",
+				"description": "Stellt Einstellungen aus einer zuvor exportierten JSON-Datei wieder her.",
+				"buttonLabel": "Importieren",
+				"success": "Einstellungen erfolgreich importiert.",
+				"error": "Import fehlgeschlagen."
 			},
 			"reset": {
-				"label": "",
-				"description": "",
-				"buttonLabel": "",
-				"success": "",
-				"error": "",
+				"label": "Einstellungen zurücksetzen",
+				"description": "Setzt alle Einstellungen auf ihre Standardwerte zurück.",
+				"buttonLabel": "Zurücksetzen",
+				"success": "Einstellungen erfolgreich zurückgesetzt.",
+				"error": "Zurücksetzen fehlgeschlagen.",
 				"confirm": {
-					"title": "",
-					"description": "",
-					"confirm": ""
+					"title": "Einstellungen zurücksetzen?",
+					"description": "Dadurch werden alle Einstellungen auf ihre Standardwerte zurückgesetzt. Dies kann nicht rückgängig gemacht werden.",
+					"confirm": "Ja, zurücksetzen"
 				}
 			}
 		},
