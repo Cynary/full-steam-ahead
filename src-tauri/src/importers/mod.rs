@@ -89,6 +89,41 @@ fn resolve_host_binary(name: &str) -> Option<PathBuf> {
     parse_command_v(&String::from_utf8_lossy(&output.stdout))
 }
 
+/// Path to `flatpak-spawn` inside a Flatpak sandbox, provided by every runtime.
+#[cfg(unix)]
+const FLATPAK_SPAWN: &str = "/usr/bin/flatpak-spawn";
+
+/// Rewrites a launch command so a Flatpak Steam can reach a binary on the host.
+#[cfg(unix)]
+pub fn host_launch(exe: PathBuf, options: String) -> (PathBuf, String) {
+    wrap_for_sandboxed_steam(exe, options, crate::steam::detect::is_sandboxed_steam())
+}
+
+#[cfg(unix)]
+fn wrap_for_sandboxed_steam(
+    exe: PathBuf,
+    options: String,
+    steam_sandboxed: bool,
+) -> (PathBuf, String) {
+    if !steam_sandboxed {
+        return (exe, options);
+    }
+
+    let exe = exe.display().to_string();
+    let exe = if exe.contains(' ') {
+        format!("\"{exe}\"")
+    } else {
+        exe
+    };
+    let options = if options.is_empty() {
+        format!("--host {exe}")
+    } else {
+        format!("--host {exe} {options}")
+    };
+
+    (PathBuf::from(FLATPAK_SPAWN), options)
+}
+
 /// Takes the first absolute path
 #[cfg(unix)]
 fn parse_command_v(stdout: &str) -> Option<PathBuf> {
@@ -179,6 +214,10 @@ pub fn launcher_candidate(
     launch_url: String,
     tags: Vec<String>,
 ) -> ImportCandidate {
+    // Launchers live on the host, which a Flatpak Steam can only reach via flatpak-spawn.
+    #[cfg(unix)]
+    let (launcher_path, launch_url) = host_launch(launcher_path, launch_url);
+
     let start_dir = launcher_path
         .parent()
         .map(PathBuf::from)
@@ -230,6 +269,45 @@ mod tests {
         // `command -v` prints the bare name for builtins and nothing for unknown commands
         assert_eq!(parse_command_v("flatpak\n"), None);
         assert_eq!(parse_command_v(""), None);
+    }
+
+    #[test]
+    fn native_steam_launches_the_binary_directly() {
+        let (exe, options) = wrap_for_sandboxed_steam(
+            PathBuf::from("/usr/bin/flatpak"),
+            "run com.foo.Bar".to_string(),
+            false,
+        );
+        assert_eq!(exe, PathBuf::from("/usr/bin/flatpak"));
+        assert_eq!(options, "run com.foo.Bar");
+    }
+
+    #[test]
+    fn sandboxed_steam_breaks_out_to_the_host() {
+        let (exe, options) = wrap_for_sandboxed_steam(
+            PathBuf::from("/usr/bin/flatpak"),
+            "run com.foo.Bar".to_string(),
+            true,
+        );
+        assert_eq!(exe, PathBuf::from(FLATPAK_SPAWN));
+        assert_eq!(options, "--host /usr/bin/flatpak run com.foo.Bar");
+    }
+
+    #[test]
+    fn sandboxed_steam_handles_an_exe_without_options() {
+        let (_, options) =
+            wrap_for_sandboxed_steam(PathBuf::from("/usr/bin/lutris"), String::new(), true);
+        assert_eq!(options, "--host /usr/bin/lutris");
+    }
+
+    #[test]
+    fn sandboxed_steam_quotes_paths_containing_spaces() {
+        let (_, options) = wrap_for_sandboxed_steam(
+            PathBuf::from("/opt/my launcher/run"),
+            "play".to_string(),
+            true,
+        );
+        assert_eq!(options, "--host \"/opt/my launcher/run\" play");
     }
 
     #[test]

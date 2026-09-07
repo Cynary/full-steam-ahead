@@ -38,6 +38,17 @@ pub fn is_valid_steam_location(path: &Path) -> bool {
     install::is_steam_install(path)
 }
 
+/// Whether the detected Steam runs inside its own Flatpak sandbox.
+#[cfg(unix)]
+pub fn is_sandboxed_steam() -> bool {
+    static SANDBOXED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *SANDBOXED.get_or_init(|| {
+        find_install_path()
+            .as_deref()
+            .is_some_and(install::is_flatpak_steam)
+    })
+}
+
 fn steam_location_override() -> Option<PathBuf> {
     crate::commands::load_settings()
         .ok()

@@ -14,6 +14,13 @@ pub(super) fn is_steam_install(path: &Path) -> bool {
     path.join("steamapps").is_dir() || path.join("config").is_dir()
 }
 
+/// Recognises the Flatpak Steam by the per-app data directory it lives in.
+#[cfg(unix)]
+pub(super) fn is_flatpak_steam(path: &Path) -> bool {
+    path.components()
+        .any(|component| component.as_os_str() == std::ffi::OsStr::new("com.valvesoftware.Steam"))
+}
+
 #[cfg(windows)]
 fn platform_steam_install_path() -> Option<PathBuf> {
     use winreg::{enums::HKEY_CURRENT_USER, RegKey};
@@ -75,6 +82,23 @@ fn common_steam_install_path() -> Option<PathBuf> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(unix)]
+    #[test]
+    fn flatpak_steam_is_recognised_by_its_app_dir() {
+        assert!(is_flatpak_steam(Path::new(
+            "/home/user/.var/app/com.valvesoftware.Steam/data/Steam"
+        )));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn native_steam_paths_are_not_flatpak() {
+        assert!(!is_flatpak_steam(Path::new("/home/user/.steam/steam")));
+        assert!(!is_flatpak_steam(Path::new(
+            "/home/user/.local/share/Steam"
+        )));
+    }
     use std::{
         fs,
         sync::atomic::{AtomicU64, Ordering},

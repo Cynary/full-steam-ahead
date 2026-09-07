@@ -43,12 +43,7 @@ fn launch_target() -> AppResult<LaunchTarget> {
     #[cfg(unix)]
     if let Some(app_id) = flatpak_app_id() {
         let flatpak = crate::importers::host_binary_path("flatpak");
-        let start_dir = flatpak.parent().unwrap_or(Path::new("/")).to_path_buf();
-        return Ok(LaunchTarget {
-            exe: quote_path(&flatpak),
-            start_dir: quote_path(&start_dir),
-            launch_options: format!("run {app_id}"),
-        });
+        return Ok(host_target(flatpak, format!("run {app_id}")));
     }
 
     let exe = std::env::current_exe().map_err(|source| {
@@ -56,13 +51,32 @@ fn launch_target() -> AppResult<LaunchTarget> {
             "Failed to determine the current executable: {source}"
         ))
     })?;
-    let start_dir = exe.parent().unwrap_or(Path::new("."));
 
-    Ok(LaunchTarget {
-        start_dir: quote_path(start_dir),
+    #[cfg(unix)]
+    return Ok(host_target(exe, String::new()));
+
+    #[cfg(not(unix))]
+    {
+        let start_dir = exe.parent().unwrap_or(Path::new("."));
+        Ok(LaunchTarget {
+            start_dir: quote_path(start_dir),
+            exe: quote_path(&exe),
+            launch_options: String::new(),
+        })
+    }
+}
+
+/// Routes through `flatpak-spawn --host` when Steam itself is sandboxed and cannot see us.
+#[cfg(unix)]
+fn host_target(exe: std::path::PathBuf, options: String) -> LaunchTarget {
+    let (exe, launch_options) = crate::importers::host_launch(exe, options);
+    let start_dir = exe.parent().unwrap_or(Path::new("/")).to_path_buf();
+
+    LaunchTarget {
         exe: quote_path(&exe),
-        launch_options: String::new(),
-    })
+        start_dir: quote_path(&start_dir),
+        launch_options,
+    }
 }
 
 #[cfg(unix)]
