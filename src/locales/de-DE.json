@@ -12,7 +12,7 @@
 		"missing": "Fehlt",
 		"officialSteam": "Offizielles Steam",
 		"localFile": "Lokale Datei",
-		"existingCustom": "Vorhandenes Custom",
+		"existingCustom": "",
 		"steamGridDb": "SteamGridDB",
 		"unknown": "Unbekannt"
 	},
@@ -77,10 +77,10 @@
 			"logo": "Logo",
 			"icon": "Symbol"
 		},
-		"replace": "Ersetzen",
 		"pickLocalArtworkTitle": "Lokales Artwork auswählen",
 		"browseSteamGridDbTitle": "SteamGridDB durchsuchen",
-		"useOfficialArtworkTitle": "Offizielles Steam-Artwork verwenden"
+		"useOfficialArtworkTitle": "Offizielles Steam-Artwork verwenden",
+		"deleteArtworkTitle": ""
 	},
 	"reviewView": {
 		"preparingPreview": "Vorschau wird vorbereitet...",
@@ -108,6 +108,8 @@
 		"allDoneSubtitle": "Steam-Verknüpfungen und Artwork wurden aktualisiert.",
 		"changesApplied": "Änderungen angewendet",
 		"backupsCreated": "Sicherungen erstellt",
+		"kofiTitle": "",
+		"kofiSubtitle": "",
 		"starting": "Wird gestartet..."
 	},
 	"appShell": {
@@ -116,6 +118,12 @@
 		"updateAvailable": "Update verfügbar",
 		"donate": "Spenden",
 		"onGithub": "Auf GitHub"
+	},
+	"updateModal": {
+		"title": "",
+		"description": "",
+		"later": "",
+		"download": ""
 	},
 	"steamGridDbBrowser": {
 		"searchPlaceholder": "SteamGridDB durchsuchen…",
@@ -129,6 +137,7 @@
 			"steam": "Steam",
 			"sources": "Quellen",
 			"artwork": "Artwork",
+			"data": "",
 			"backups": "Sicherungen",
 			"debug": "Debug"
 		},
@@ -158,6 +167,10 @@
 				"auto": "Systemstandard",
 				"light": "Hell",
 				"dark": "Dunkel"
+			},
+			"updateNotifications": {
+				"label": "",
+				"description": ""
 			}
 		},
 		"steam": {
@@ -174,6 +187,10 @@
 				"label": "Sammlungen pro Plattform erstellen",
 				"description": "Gruppiert importierte Spiele in eine Sammlung für jeden Launcher."
 			},
+			"addSelfShortcut": {
+				"label": "",
+				"description": ""
+			},
 			"steamLocation": {
 				"label": "Steam-Installationsort",
 				"description": "Überschreibt die automatische Erkennung, falls Steam nicht automatisch gefunden wird."
@@ -181,6 +198,13 @@
 		},
 		"artwork": {
 			"title": "Artwork",
+			"defaultSource": {
+				"label": "",
+				"description": "",
+				"none": "",
+				"steam": "",
+				"steamGridDb": ""
+			},
 			"enableSteamGridDb": {
 				"label": "SteamGridDB aktivieren",
 				"description": "Fügt eine Schaltfläche hinzu, um beim Überprüfen von Spielen benutzerdefiniertes Artwork von SteamGridDB auszuwählen."
@@ -198,6 +222,40 @@
 		},
 		"sources": {
 			"title": "Quellen"
+		},
+		"data": {
+			"title": "",
+			"export": {
+				"label": "",
+				"description": "",
+				"buttonLabel": "",
+				"success": "",
+				"error": "",
+				"warning": {
+					"title": "",
+					"description": "",
+					"confirm": ""
+				}
+			},
+			"import": {
+				"label": "",
+				"description": "",
+				"buttonLabel": "",
+				"success": "",
+				"error": ""
+			},
+			"reset": {
+				"label": "",
+				"description": "",
+				"buttonLabel": "",
+				"success": "",
+				"error": "",
+				"confirm": {
+					"title": "",
+					"description": "",
+					"confirm": ""
+				}
+			}
 		},
 		"backups": {
 			"title": "Sicherungen",

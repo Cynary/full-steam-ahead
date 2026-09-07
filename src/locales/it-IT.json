@@ -77,10 +77,10 @@
 			"logo": "",
 			"icon": ""
 		},
-		"replace": "",
 		"pickLocalArtworkTitle": "",
 		"browseSteamGridDbTitle": "",
-		"useOfficialArtworkTitle": ""
+		"useOfficialArtworkTitle": "",
+		"deleteArtworkTitle": ""
 	},
 	"reviewView": {
 		"preparingPreview": "",
@@ -108,6 +108,8 @@
 		"allDoneSubtitle": "",
 		"changesApplied": "",
 		"backupsCreated": "",
+		"kofiTitle": "",
+		"kofiSubtitle": "",
 		"starting": ""
 	},
 	"appShell": {
@@ -116,6 +118,12 @@
 		"updateAvailable": "",
 		"donate": "",
 		"onGithub": ""
+	},
+	"updateModal": {
+		"title": "",
+		"description": "",
+		"later": "",
+		"download": ""
 	},
 	"steamGridDbBrowser": {
 		"searchPlaceholder": "",
@@ -129,6 +137,7 @@
 			"steam": "",
 			"sources": "",
 			"artwork": "",
+			"data": "",
 			"backups": "",
 			"debug": ""
 		},
@@ -158,6 +167,10 @@
 				"auto": "",
 				"light": "",
 				"dark": ""
+			},
+			"updateNotifications": {
+				"label": "",
+				"description": ""
 			}
 		},
 		"steam": {
@@ -174,6 +187,10 @@
 				"label": "",
 				"description": ""
 			},
+			"addSelfShortcut": {
+				"label": "",
+				"description": ""
+			},
 			"steamLocation": {
 				"label": "",
 				"description": ""
@@ -181,6 +198,13 @@
 		},
 		"artwork": {
 			"title": "",
+			"defaultSource": {
+				"label": "",
+				"description": "",
+				"none": "",
+				"steam": "",
+				"steamGridDb": ""
+			},
 			"enableSteamGridDb": {
 				"label": "",
 				"description": ""
@@ -198,6 +222,40 @@
 		},
 		"sources": {
 			"title": ""
+		},
+		"data": {
+			"title": "",
+			"export": {
+				"label": "",
+				"description": "",
+				"buttonLabel": "",
+				"success": "",
+				"error": "",
+				"warning": {
+					"title": "",
+					"description": "",
+					"confirm": ""
+				}
+			},
+			"import": {
+				"label": "",
+				"description": "",
+				"buttonLabel": "",
+				"success": "",
+				"error": ""
+			},
+			"reset": {
+				"label": "",
+				"description": "",
+				"buttonLabel": "",
+				"success": "",
+				"error": "",
+				"confirm": {
+					"title": "",
+					"description": "",
+					"confirm": ""
+				}
+			}
 		},
 		"backups": {
 			"title": "",
