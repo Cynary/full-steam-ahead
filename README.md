@@ -56,9 +56,22 @@ Prefer to build from source? See [Building from source](#-building-from-source) 
 
 ## ✨ Features
 
-### Platforms
+<table>
+<tr>
+<td width="50%"><b>Platforms</b><br>Automatically detects installed games from a wide range of launchers and platforms.</td>
+<td width="50%"><b>Artwork management</b><br>Fetches and applies grid images, hero art, and logos for your imported games using matched Steam assets.</td>
+</tr>
+<tr>
+<td width="50%"><b>Collections</b><br>Organizes imported games into Steam collections so your library stays tidy.</td>
+<td width="50%"><b>Preview & backup</b><br>Review the full list of changes before anything is applied. A backup is created automatically so you can always roll back.</td>
+</tr>
+<tr>
+<td width="50%"><b>Manual import</b><br>Add any executable as a custom non-Steam game with your own launch options.</td>
+<td width="50%"><b>Automatic Steam restart</b><br>After importing, Full Steam Ahead detects and restarts Steam so your new shortcuts show up immediately.</td>
+</tr>
+</table>
 
-Automatically detects installed games from a wide range of launchers and platforms:
+### Supported platforms
 
 | Platform | Windows | macOS | Linux |
 |---|---|---|---|
@@ -77,26 +90,6 @@ Automatically detects installed games from a wide range of launchers and platfor
 | Lutris | - | - | ✅ |
 | MiniGalaxy | - | - | ✅ |
 | Proton | - | - | ✅ |
-
-### Artwork management
-
-Fetches and applies grid images, hero art, and logos for your imported games using matched Steam assets.
-
-### Collections
-
-Organizes imported games into Steam collections so your library stays tidy.
-
-### Preview & backup
-
-Review the full list of changes before anything is applied. A backup is created automatically so you can always roll back.
-
-### Manual import
-
-Add any executable as a custom non-Steam game with your own launch options.
-
-### Automatic Steam restart
-
-After importing, Full Steam Ahead detects and restarts Steam so your new shortcuts show up immediately.
 
 ## ⚙️ Setup
 
