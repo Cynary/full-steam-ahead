@@ -125,6 +125,15 @@
 		"later": "Später",
 		"download": "Release ansehen"
 	},
+	"flatpakPermissionModal": {
+		"title": "Steam benötigt eine weitere Berechtigung",
+		"description": "Steam ist als Flatpak installiert, wodurch das Starten von Nicht-Steam-Verknüpfungen standardmäßig blockiert wird. Erteile die Berechtigung, um das zu beheben, und starte Steam anschließend neu.",
+		"granted": "Berechtigung erteilt. Starte Steam neu, damit die Änderung wirksam wird.",
+		"error": "Die Berechtigung konnte nicht erteilt werden: {message}",
+		"later": "Später",
+		"grant": "Berechtigung erteilen",
+		"close": "Schließen"
+	},
 	"steamGridDbBrowser": {
 		"searchPlaceholder": "SteamGridDB durchsuchen…",
 		"searchFailed": "Suche fehlgeschlagen.",

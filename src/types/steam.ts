@@ -2,6 +2,7 @@ export interface SteamInstallation {
 	installPath: string
 	users: SteamUser[]
 	running: boolean
+	needsFlatpakPermission: boolean
 }
 
 export interface SteamUser {

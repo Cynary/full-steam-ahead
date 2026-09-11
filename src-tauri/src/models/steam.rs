@@ -7,6 +7,8 @@ pub struct SteamInstallation {
     pub install_path: PathBuf,
     pub users: Vec<SteamUser>,
     pub running: bool,
+    /// Sandboxed Steam is missing the permission `flatpak-spawn --host` needs to launch shortcuts.
+    pub needs_flatpak_permission: bool,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -125,6 +125,15 @@
 		"later": "Later",
 		"download": "View release"
 	},
+	"flatpakPermissionModal": {
+		"title": "Steam needs one more permission",
+		"description": "Steam is installed as a Flatpak, which blocks it from launching non-Steam shortcuts by default. Grant it permission to fix this, then restart Steam.",
+		"granted": "Permission granted. Restart Steam for it to take effect.",
+		"error": "Couldn't grant the permission: {message}",
+		"later": "Later",
+		"grant": "Grant permission",
+		"close": "Close"
+	},
 	"steamGridDbBrowser": {
 		"searchPlaceholder": "Search SteamGridDB…",
 		"searchFailed": "Search failed.",

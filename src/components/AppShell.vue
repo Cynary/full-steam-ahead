@@ -7,6 +7,7 @@ import { useI18n } from 'vue-i18n'
 
 import KofiIcon from '../assets/icons/kofi.svg?component'
 import { useAppState } from '../composables/useAppState'
+import FlatpakPermissionModal from './FlatpakPermissionModal.vue'
 import UpdateAvailableModal from './UpdateAvailableModal.vue'
 
 defineSlots<{
@@ -25,6 +26,23 @@ const updateChecking = ref(true)
 const isLatest = ref(false)
 const latestVersion = ref<string | null>(null)
 const showUpdateModal = ref(false)
+
+const showFlatpakPermissionModal = ref(false)
+const dismissedFlatpakPermissionPrompt = ref(false)
+
+watch(
+	() => state.install.value?.needsFlatpakPermission,
+	(needsPermission) => {
+		if (needsPermission && !dismissedFlatpakPermissionPrompt.value) {
+			showFlatpakPermissionModal.value = true
+		}
+	},
+)
+
+function dismissFlatpakPermissionModal() {
+	dismissedFlatpakPermissionPrompt.value = true
+	showFlatpakPermissionModal.value = false
+}
 
 async function checkForUpdates() {
 	try {
@@ -143,5 +161,10 @@ onMounted(async () => {
 		:latest-version="latestVersion"
 		@update:model-value="dismissUpdateModal"
 		@download="downloadUpdate"
+	/>
+
+	<FlatpakPermissionModal
+		:model-value="showFlatpakPermissionModal"
+		@update:model-value="dismissFlatpakPermissionModal"
 	/>
 </template>

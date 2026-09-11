@@ -46,6 +46,59 @@ pub fn is_sandboxed_steam() -> bool {
         .is_some_and(install::is_flatpak_steam)
 }
 
+#[cfg(unix)]
+const STEAM_FLATPAK_APP_ID: &str = "com.valvesoftware.Steam";
+#[cfg(unix)]
+const FLATPAK_HOST_TALK_NAME: &str = "org.freedesktop.Flatpak";
+
+/// Whether sandboxed Steam is missing the permission `flatpak-spawn --host` needs.
+#[cfg(unix)]
+pub fn needs_flatpak_permission() -> bool {
+    is_sandboxed_steam() && !steam_flatpak_permission_granted()
+}
+
+#[cfg(not(unix))]
+pub fn needs_flatpak_permission() -> bool {
+    false
+}
+
+/// Checks Steam's effective Flatpak permissions for the required talk-name.
+#[cfg(unix)]
+fn steam_flatpak_permission_granted() -> bool {
+    let flatpak = crate::importers::host_binary_path("flatpak");
+    let Ok(output) = crate::importers::host_command(&flatpak.display().to_string())
+        .args(["info", "--show-permissions", STEAM_FLATPAK_APP_ID])
+        .output()
+    else {
+        return false;
+    };
+
+    String::from_utf8_lossy(&output.stdout).contains(&format!("{FLATPAK_HOST_TALK_NAME}=talk"))
+}
+
+/// Grants sandboxed Steam permission to reach the host via `flatpak-spawn` (not on by default).
+#[cfg(unix)]
+pub fn grant_steam_flatpak_permission() -> AppResult<()> {
+    let flatpak = crate::importers::host_binary_path("flatpak");
+    let status = crate::importers::host_command(&flatpak.display().to_string())
+        .args([
+            "override",
+            "--user",
+            &format!("--talk-name={FLATPAK_HOST_TALK_NAME}"),
+            STEAM_FLATPAK_APP_ID,
+        ])
+        .status()
+        .map_err(|source| AppError::Message(format!("Failed to run flatpak override: {source}")))?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        Err(AppError::Message(
+            "flatpak override did not complete successfully".to_string(),
+        ))
+    }
+}
+
 fn steam_location_override() -> Option<PathBuf> {
     crate::commands::load_settings()
         .ok()
@@ -115,6 +168,7 @@ pub fn detect_steam() -> AppResult<SteamInstallation> {
         install_path,
         users: steam_users,
         running: is_steam_running(),
+        needs_flatpak_permission: needs_flatpak_permission(),
     })
 }
 

@@ -34,6 +34,19 @@ pub fn validate_steam_location(path: String) -> bool {
 
 #[tauri::command]
 #[instrument]
+pub fn grant_steam_flatpak_permission() -> CommandResult<()> {
+    #[cfg(unix)]
+    {
+        steam::detect::grant_steam_flatpak_permission().map_err(Into::into)
+    }
+    #[cfg(not(unix))]
+    {
+        Ok(())
+    }
+}
+
+#[tauri::command]
+#[instrument]
 pub fn read_shortcuts_for_user(user_steam_id: String) -> CommandResult<Vec<ShortcutEntry>> {
     let user = steam::detect::find_user(&user_steam_id)?;
     let result = steam::shortcuts::read_shortcuts(&user.shortcuts_path).map_err(Into::into);
