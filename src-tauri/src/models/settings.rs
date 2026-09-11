@@ -35,6 +35,16 @@ pub enum DefaultArtworkSource {
     SteamGridDb,
 }
 
+/// Whether games start through their launcher or from their own executable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub enum LauncherMode {
+    Always,
+    #[default]
+    WhenRequired,
+    WhenNoExecutable,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Settings {
@@ -47,6 +57,7 @@ pub struct Settings {
     pub sources: HashMap<String, SourceSettings>,
     pub steam_grid_db: SteamGridDbSettings,
     pub default_artwork_source: DefaultArtworkSource,
+    pub launcher_mode: LauncherMode,
     pub locale: Option<String>,
     pub color_scheme: Option<String>,
     pub update_notifications: bool,
@@ -63,6 +74,7 @@ impl Default for Settings {
             sources: HashMap::new(),
             steam_grid_db: SteamGridDbSettings::default(),
             default_artwork_source: DefaultArtworkSource::default(),
+            launcher_mode: LauncherMode::default(),
             locale: None,
             color_scheme: None,
             update_notifications: true,

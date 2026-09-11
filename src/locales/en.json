@@ -221,7 +221,14 @@
 			}
 		},
 		"sources": {
-			"title": "Sources"
+			"title": "Sources",
+			"launcherMode": {
+				"label": "Launch method",
+				"description": "Whether games start from their own executable or through their launcher. Games without an executable always use their launcher.",
+				"always": "Always launcher",
+				"whenRequired": "Launcher when needed",
+				"whenNoExecutable": "Always direct"
+			}
 		},
 		"data": {
 			"title": "Data",

@@ -1,6 +1,6 @@
 use crate::{
     error::{io_context, AppResult},
-    importers::{candidate_from_parts, launcher_candidate},
+    importers::{candidate_from_parts, launcher_candidate, launcher_url_pair},
     models::{ImportCandidate, ImportSource, SteamUser},
 };
 use serde::Deserialize;
@@ -51,13 +51,21 @@ impl EpicManifest {
         )
     }
 
-    fn needs_launcher(&self) -> bool {
-        if self.is_managed || self.requires_auth {
-            return true;
-        }
+    fn has_expected_dlc(&self) -> bool {
         self.expected_dlc
             .as_ref()
             .is_some_and(|dlc| !dlc.is_empty())
+    }
+
+    /// Games with no executable of their own to start.
+    fn requires_launcher(&self) -> bool {
+        self.is_managed || self.launch_executable.is_empty()
+    }
+
+    /// Adds titles the launcher should handle by default: DLC it assembles, and
+    /// titles wanting auth arguments that only it passes.
+    fn prefers_launcher(&self) -> bool {
+        self.requires_launcher() || self.requires_auth || self.has_expected_dlc()
     }
 
     fn executable_path(&self) -> PathBuf {
@@ -119,12 +127,13 @@ fn candidate_from_manifest(
     paths: &EpicPaths,
     manifest: EpicManifest,
 ) -> ImportCandidate {
-    let needs_launcher = manifest.needs_launcher();
+    let requires_launcher = manifest.requires_launcher();
+    let prefers_launcher = manifest.prefers_launcher();
     let name = manifest.display_name.clone();
     let launch_url = manifest.launch_url();
     let exe = manifest.executable_path();
     let mut tags = vec!["Epic".to_string()];
-    if needs_launcher {
+    if prefers_launcher {
         tags.push("Epic Launcher".to_string());
     }
 
@@ -141,7 +150,7 @@ fn candidate_from_manifest(
     };
 
     #[cfg_attr(not(all(unix, not(target_os = "macos"))), allow(unused_mut))]
-    let mut candidate = if needs_launcher {
+    let mut candidate = if requires_launcher {
         launcher_candidate(
             user,
             ImportSource::Epic,
@@ -152,6 +161,7 @@ fn candidate_from_manifest(
             tags,
         )
     } else {
+        // Keeps both routes so the user can switch; this only picks the default.
         let start_dir = exe.parent().map(PathBuf::from).unwrap_or_default();
         let mut candidate = candidate_from_parts(
             user,
@@ -163,8 +173,11 @@ fn candidate_from_manifest(
             None,
             tags,
         );
+        let (launcher_path, launch_url) =
+            launcher_url_pair(paths.launcher_path.clone(), launch_url);
         candidate.url_scheme = Some(launch_url);
-        candidate.launcher_path = Some(paths.launcher_path.clone());
+        candidate.launcher_path = Some(launcher_path);
+        candidate.use_launcher_url = prefers_launcher;
         candidate
     };
 
@@ -360,26 +373,47 @@ mod tests {
     fn needs_launcher_when_managed() {
         let mut m = test_manifest();
         m.is_managed = true;
-        assert!(m.needs_launcher());
+        assert!(m.requires_launcher());
+        assert!(m.prefers_launcher());
     }
 
     #[test]
     fn needs_launcher_when_has_dlc() {
         let mut m = test_manifest();
         m.expected_dlc = Some(HashMap::from([("dlc1".to_string(), true)]));
-        assert!(m.needs_launcher());
+        assert!(m.prefers_launcher());
+        // Has an executable of its own, so the user can still switch to it.
+        assert!(!m.requires_launcher());
+    }
+
+    #[test]
+    fn requires_launcher_without_an_executable() {
+        let mut m = test_manifest();
+        m.launch_executable = String::new();
+        assert!(m.requires_launcher());
     }
 
     #[test]
     fn no_launcher_for_plain_game() {
-        assert!(!test_manifest().needs_launcher());
+        assert!(!test_manifest().requires_launcher());
+        assert!(!test_manifest().prefers_launcher());
     }
 
     #[test]
     fn no_launcher_for_empty_dlc_map() {
         let mut m = test_manifest();
         m.expected_dlc = Some(HashMap::new());
-        assert!(!m.needs_launcher());
+        assert!(!m.requires_launcher());
+        assert!(!m.prefers_launcher());
+    }
+
+    #[test]
+    fn auth_prefers_the_launcher_but_keeps_the_executable() {
+        let mut m = test_manifest();
+        m.requires_auth = true;
+        assert!(m.prefers_launcher());
+        // Still has an executable of its own, so the user can switch back to it.
+        assert!(!m.requires_launcher());
     }
 
     #[test]
@@ -403,7 +437,7 @@ mod tests {
 
             let manifest: EpicManifest = serde_json::from_value(value).unwrap();
             assert_eq!(
-                manifest.needs_launcher(),
+                manifest.prefers_launcher(),
                 requires_auth.unwrap_or(false),
                 "bRequiresAuth = {requires_auth:?}"
             );

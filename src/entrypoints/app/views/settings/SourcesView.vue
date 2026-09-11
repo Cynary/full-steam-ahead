@@ -1,18 +1,26 @@
 <script setup lang="ts">
+import { Rocket } from '@lucide/vue'
 import { open } from '@tauri-apps/plugin-dialog'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
+import OptionSelect from '../../../../components/options/OptionSelect.vue'
 import OptionSource from '../../../../components/options/OptionSource.vue'
 import SectionHeader from '../../../../components/options/SectionHeader.vue'
 import { useAppState } from '../../../../composables/useAppState'
 import { importSourceName } from '../../../../helpers/sourceNames'
-import type { ImportSource } from '../../../../types'
+import type { ImportSource, LauncherMode } from '../../../../types'
 
 const state = useAppState()
 const { t } = useI18n()
 
 const PATHLESS_SOURCES = new Set(['gamePass'])
+
+const launcherModeOptions = computed(() => [
+	{ value: 'always', label: t('settings.sources.launcherMode.always') },
+	{ value: 'whenRequired', label: t('settings.sources.launcherMode.whenRequired') },
+	{ value: 'whenNoExecutable', label: t('settings.sources.launcherMode.whenNoExecutable') },
+])
 
 const sourceRows = computed(() =>
 	(state.availableSources.value as string[])
@@ -40,6 +48,14 @@ async function pickSourcePath(key: string) {
 	<section class="max-w-2xl">
 		<SectionHeader :title="t('settings.sources.title')" />
 		<div class="grid gap-2">
+			<OptionSelect
+				:model-value="state.settings.launcherMode"
+				:icon="Rocket"
+				:label="t('settings.sources.launcherMode.label')"
+				:description="t('settings.sources.launcherMode.description')"
+				:options="launcherModeOptions"
+				@update:model-value="state.settings.launcherMode = $event as LauncherMode"
+			/>
 			<OptionSource
 				v-for="source in sourceRows"
 				:key="source.key"

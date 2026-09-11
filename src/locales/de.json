@@ -221,7 +221,14 @@
 			}
 		},
 		"sources": {
-			"title": "Quellen"
+			"title": "Quellen",
+			"launcherMode": {
+				"label": "Startmethode",
+				"description": "Legt fest, ob Spiele über ihre eigene ausführbare Datei oder über ihren Launcher gestartet werden. Spiele ohne eigene ausführbare Datei nutzen immer ihren Launcher.",
+				"always": "Immer Launcher",
+				"whenRequired": "Launcher wenn nötig",
+				"whenNoExecutable": "Immer direkt"
+			}
 		},
 		"data": {
 			"title": "Daten",

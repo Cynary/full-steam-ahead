@@ -1,3 +1,4 @@
+use super::settings::LauncherMode;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
@@ -138,6 +139,19 @@ impl ImportCandidate {
             self.launch_options.as_deref()
         }
     }
+
+    /// Applies the launcher preference, skipping candidates that only start one way.
+    pub fn apply_launcher_mode(&mut self, mode: LauncherMode) {
+        if self.launcher_path.is_none() || self.url_scheme.is_none() {
+            return;
+        }
+        match mode {
+            LauncherMode::Always => self.use_launcher_url = true,
+            // The importer's own default stands.
+            LauncherMode::WhenRequired => {}
+            LauncherMode::WhenNoExecutable => self.use_launcher_url = false,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -196,4 +210,79 @@ pub enum ArtworkSource {
     SteamGridDb,
     LocalFile,
     Missing,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn toggleable() -> ImportCandidate {
+        ImportCandidate {
+            id: "epic-1".to_string(),
+            source: ImportSource::Epic,
+            name: "Test Game".to_string(),
+            executable_path: PathBuf::from("/games/test/game.exe"),
+            start_dir: PathBuf::from("/games/test"),
+            launch_options: None,
+            existing_app_id: None,
+            matched_steam_app_id: None,
+            tags: Vec::new(),
+            artwork: ArtworkPlan {
+                mode: ArtworkMode::PreserveExisting,
+                existing: Vec::new(),
+                proposed: Vec::new(),
+            },
+            url_scheme: Some("com.epicgames.launcher://apps/x".to_string()),
+            launcher_path: Some(PathBuf::from("/epic/EpicGamesLauncher.exe")),
+            use_launcher_url: true,
+            needs_proton: false,
+        }
+    }
+
+    // No executable of its own, so the launcher is the only way in.
+    fn launcher_only() -> ImportCandidate {
+        ImportCandidate {
+            launcher_path: None,
+            ..toggleable()
+        }
+    }
+
+    #[test]
+    fn always_routes_a_toggleable_candidate_through_the_launcher() {
+        let mut c = toggleable();
+        c.use_launcher_url = false;
+        c.apply_launcher_mode(LauncherMode::Always);
+        assert!(c.use_launcher_url);
+    }
+
+    #[test]
+    fn when_no_executable_prefers_the_executable() {
+        let mut c = toggleable();
+        c.apply_launcher_mode(LauncherMode::WhenNoExecutable);
+        assert!(!c.use_launcher_url);
+        assert_eq!(c.effective_executable(), Path::new("/games/test/game.exe"));
+    }
+
+    #[test]
+    fn when_required_leaves_the_importer_default_alone() {
+        for importer_default in [true, false] {
+            let mut c = toggleable();
+            c.use_launcher_url = importer_default;
+            c.apply_launcher_mode(LauncherMode::WhenRequired);
+            assert_eq!(c.use_launcher_url, importer_default);
+        }
+    }
+
+    #[test]
+    fn launcher_only_candidates_ignore_every_mode() {
+        for mode in [
+            LauncherMode::Always,
+            LauncherMode::WhenRequired,
+            LauncherMode::WhenNoExecutable,
+        ] {
+            let mut c = launcher_only();
+            c.apply_launcher_mode(mode);
+            assert!(c.use_launcher_url, "{mode:?}");
+        }
+    }
 }

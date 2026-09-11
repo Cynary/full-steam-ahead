@@ -1,4 +1,5 @@
 export type DefaultArtworkSource = 'none' | 'steam' | 'steamGridDb'
+export type LauncherMode = 'always' | 'whenRequired' | 'whenNoExecutable'
 
 export interface Settings {
 	stopSteam: boolean
@@ -9,6 +10,7 @@ export interface Settings {
 	sources: Record<string, SourceSettings>
 	steamGridDb: SteamGridDbSettings
 	defaultArtworkSource: DefaultArtworkSource
+	launcherMode: LauncherMode
 	locale: string | null
 	colorScheme: string | null
 	updateNotifications: boolean

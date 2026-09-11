@@ -205,6 +205,14 @@ pub fn candidate_from_parts(
     }
 }
 
+/// Sandbox-wraps a launcher and its URL for candidates that can also start directly.
+pub fn launcher_url_pair(launcher_path: PathBuf, launch_url: String) -> (PathBuf, String) {
+    #[cfg(unix)]
+    return host_launch(launcher_path, launch_url);
+    #[cfg(not(unix))]
+    return (launcher_path, launch_url);
+}
+
 pub fn launcher_candidate(
     user: &SteamUser,
     source: ImportSource,

@@ -35,6 +35,7 @@ pub fn scan_sources_with_progress(
                 settings.default_artwork_source,
                 &settings.steam_grid_db,
             );
+            candidate.apply_launcher_mode(settings.launcher_mode);
         }
         let found_count = found.len();
         candidates.extend(found);
