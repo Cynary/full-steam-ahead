@@ -59,6 +59,10 @@ function allSelected(candidates: ImportCandidate[]) {
 	return candidates.length > 0 && selectedIn(candidates) === candidates.length
 }
 
+function someSelected(candidates: ImportCandidate[]) {
+	return selectedIn(candidates) > 0 && !allSelected(candidates)
+}
+
 function setCandidatesSelected(candidates: ImportCandidate[], value: boolean) {
 	for (const candidate of candidates) {
 		if (state.selectedCandidateIds.value.has(candidate.id) !== value) {
@@ -143,6 +147,7 @@ function toggleCandidate(id: string) {
 			>
 				<Checkbox
 					:model-value="allSelected(manualCandidates)"
+					:neutral="someSelected(manualCandidates)"
 					:disabled="manualCandidates.length === 0"
 					@update:model-value="setCandidatesSelected(manualCandidates, $event)"
 				/>

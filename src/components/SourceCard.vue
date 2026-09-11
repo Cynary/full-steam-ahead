@@ -34,6 +34,8 @@ const selectedCount = computed(
 const allSelected = computed(
 	() => props.candidates.length > 0 && selectedCount.value === props.candidates.length,
 )
+
+const someSelected = computed(() => selectedCount.value > 0 && !allSelected.value)
 </script>
 
 <template>
@@ -41,7 +43,11 @@ const allSelected = computed(
 		<label
 			class="flex cursor-pointer items-center gap-3 border-b border-border bg-surface-4 px-3 py-2.5 transition-colors hover:bg-surface-hover"
 		>
-			<Checkbox :model-value="allSelected" @update:model-value="emit('set-all', $event)" />
+			<Checkbox
+				:model-value="allSelected"
+				:neutral="someSelected"
+				@update:model-value="emit('set-all', $event)"
+			/>
 			<SourceIcon v-if="source" :source="source" class="size-5 shrink-0" />
 			<strong class="min-w-0 flex-1 truncate text-base">{{ title }}</strong>
 			<span class="shrink-0 rounded-md border border-border px-2 py-1 text-xs text-secondary">
