@@ -131,7 +131,7 @@ pub fn apply_candidate_artwork(
     candidate: &ImportCandidate,
 ) -> AppResult<Vec<ArtworkSkip>> {
     let shortcut_app_id = crate::steam::non_steam_app_id(
-        &format!("\"{}\"", candidate.executable_path.display()),
+        &format!("\"{}\"", candidate.effective_executable().display()),
         &candidate.name,
     );
 
