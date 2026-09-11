@@ -127,10 +127,10 @@
 	},
 	"flatpakPermissionModal": {
 		"title": "Steam needs one more permission",
-		"description": "Steam is sandboxed, which blocks it from launching non-Steam shortcuts. Granting this lets it run commands outside the sandbox, so only do it if you trust what you launch through it. Restart Steam afterwards.",
-		"granted": "Permission granted. Restart Steam for it to take effect.",
+		"description": "Steam is sandboxed, which blocks it from launching external shortcuts. Granting this lets it run commands outside the sandbox, so only do it if you trust what you launch through it.",
+		"granted": "Permission granted.",
 		"error": "Couldn't grant the permission: {message}",
-		"later": "Later",
+		"later": "Skip",
 		"grant": "Grant permission",
 		"close": "Close"
 	},

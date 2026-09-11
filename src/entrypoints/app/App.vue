@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ArrowRight, Check, Search, X } from '@lucide/vue'
 import { invoke } from '@tauri-apps/api/core'
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterView, useRoute, useRouter } from 'vue-router'
 
 import AppShell from '../../components/AppShell.vue'
+import FlatpakPermissionModal from '../../components/FlatpakPermissionModal.vue'
 import TitleBar from '../../components/TitleBar.vue'
 import UiButton from '../../components/ui/Button.vue'
 import { useAppState } from '../../composables/useAppState'
@@ -18,10 +19,12 @@ const route = useRoute()
 const state = useAppState()
 const { t } = useI18n()
 
+const showFlatpakPermissionModal = ref(false)
+
 onMounted(() => state.loadSettingsFromDisk())
 const reviewPlan = useReviewPlan()
 const task = useTaskStatus()
-const { scan } = useScanSources()
+const { scan: scanSources } = useScanSources()
 const settingsOpen = computed(() => route.path.startsWith('/settings'))
 
 const activeStepIndex = computed(() => {
@@ -62,7 +65,7 @@ function toggleSettings() {
 	router.push(settingsOpen.value ? '/' : '/settings')
 }
 
-async function goToStepIndex(index: number) {
+async function toStepIndex(index: number) {
 	if (index === 0) {
 		state.step.value = 'start'
 		return
@@ -91,7 +94,7 @@ async function goToStepIndex(index: number) {
 	}
 }
 
-function goBack() {
+function back() {
 	if (state.step.value === 'sources') {
 		state.step.value = 'start'
 	} else if (state.step.value === 'artwork') {
@@ -103,8 +106,8 @@ function goBack() {
 	}
 }
 
-async function doScan() {
-	await scan()
+async function scan() {
+	await scanSources()
 	if (state.scanPhase.value === 'done') {
 		state.step.value = 'sources'
 	}
@@ -114,7 +117,7 @@ function continueToSources() {
 	state.step.value = 'sources'
 }
 
-async function goNext() {
+async function next() {
 	if (state.step.value === 'sources') {
 		state.step.value = 'artwork'
 		return
@@ -125,8 +128,22 @@ async function goNext() {
 		return
 	}
 
+	if (state.install.value?.needsFlatpakPermission) {
+		showFlatpakPermissionModal.value = true
+		return
+	}
+
+	await apply()
+}
+
+async function apply() {
 	state.step.value = 'done'
 	await reviewPlan.applyPreview()
+}
+
+async function onFlatpakPermissionModalClosed() {
+	showFlatpakPermissionModal.value = false
+	await apply()
 }
 </script>
 
@@ -136,7 +153,7 @@ async function goNext() {
 			:active-step="activeStepIndex"
 			:navigable-steps="navigableSteps"
 			:settings-open="settingsOpen"
-			@select-step="goToStepIndex"
+			@select-step="toStepIndex"
 			@toggle-settings="toggleSettings"
 		/>
 		<AppShell>
@@ -145,7 +162,7 @@ async function goNext() {
 			<template #footer>
 				<div v-if="showActionBar" class="flex shrink-0 justify-center px-2">
 					<div class="flex items-center gap-2">
-						<UiButton v-if="state.step.value !== 'start'" variant="ghost" @click="goBack">
+						<UiButton v-if="state.step.value !== 'start'" variant="ghost" @click="back">
 							{{ t('app.actions.back') }}
 						</UiButton>
 
@@ -153,7 +170,7 @@ async function goNext() {
 							<UiButton
 								:variant="state.scanPhase.value === 'done' ? 'ghost' : undefined"
 								:disabled="scanDisabled"
-								@click="doScan"
+								@click="scan"
 							>
 								{{ t('app.actions.scan') }}
 								<template #icon><Search :size="16" /></template>
@@ -166,7 +183,7 @@ async function goNext() {
 						<UiButton
 							v-else-if="state.step.value !== 'done'"
 							:disabled="nextDisabled"
-							@click="goNext"
+							@click="next"
 						>
 							{{ nextLabel }}
 							<template #icon>
@@ -187,4 +204,9 @@ async function goNext() {
 			</template>
 		</AppShell>
 	</div>
+
+	<FlatpakPermissionModal
+		:model-value="showFlatpakPermissionModal"
+		@update:model-value="onFlatpakPermissionModalClosed"
+	/>
 </template>

@@ -127,10 +127,10 @@
 	},
 	"flatpakPermissionModal": {
 		"title": "Steam benötigt eine weitere Berechtigung",
-		"description": "Steam läuft in einer Sandbox, wodurch es keine Nicht-Steam-Verknüpfungen starten kann. Diese Berechtigung erlaubt Befehle außerhalb der Sandbox – tu das nur, wenn du dem vertraust, was du darüber startest. Starte Steam anschließend neu.",
-		"granted": "Berechtigung erteilt. Starte Steam neu, damit die Änderung wirksam wird.",
+		"description": "Steam läuft in einer Sandbox, wodurch es keine externen Verknüpfungen starten kann. Diese Berechtigung erlaubt Befehle außerhalb der Sandbox. Tu dies nur, wenn du dem vertraust, was du darüber startest.",
+		"granted": "Berechtigung erteilt.",
 		"error": "Die Berechtigung konnte nicht erteilt werden: {message}",
-		"later": "Später",
+		"later": "Überspringen",
 		"grant": "Berechtigung erteilen",
 		"close": "Schließen"
 	},
