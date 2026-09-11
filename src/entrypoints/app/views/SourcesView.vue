@@ -4,11 +4,8 @@ import { open } from '@tauri-apps/plugin-dialog'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-import GameIcon from '../../../components/GameIcon.vue'
 import SourceCard from '../../../components/SourceCard.vue'
 import UiButton from '../../../components/ui/Button.vue'
-import Checkbox from '../../../components/ui/Checkbox.vue'
-import ItemRow from '../../../components/ui/ItemRow.vue'
 import { useAppState } from '../../../composables/useAppState'
 import { useTaskStatus } from '../../../composables/useTaskStatus'
 import { api } from '../../../helpers/api'
@@ -49,18 +46,6 @@ const otherCards = computed(() => {
 
 function candidatesFor(source: ImportSource) {
 	return state.candidates.value.filter((candidate) => candidate.source === source)
-}
-
-function selectedIn(candidates: ImportCandidate[]) {
-	return candidates.filter((c) => state.selectedCandidateIds.value.has(c.id)).length
-}
-
-function allSelected(candidates: ImportCandidate[]) {
-	return candidates.length > 0 && selectedIn(candidates) === candidates.length
-}
-
-function someSelected(candidates: ImportCandidate[]) {
-	return selectedIn(candidates) > 0 && !allSelected(candidates)
 }
 
 function setCandidatesSelected(candidates: ImportCandidate[], value: boolean) {
@@ -141,23 +126,14 @@ function toggleCandidate(id: string) {
 				@set-all="setCandidatesSelected(card.candidates, $event)"
 			/>
 		</section>
-		<section class="overflow-hidden rounded-lg border border-border">
-			<label
-				class="flex cursor-pointer items-center gap-3 border-b border-border bg-surface-4 px-3 py-2.5 transition-colors hover:bg-surface-hover"
-			>
-				<Checkbox
-					:model-value="allSelected(manualCandidates)"
-					:neutral="someSelected(manualCandidates)"
-					:disabled="manualCandidates.length === 0"
-					@update:model-value="setCandidatesSelected(manualCandidates, $event)"
-				/>
-				<strong class="min-w-0 flex-1 truncate text-base">{{ importSourceName('manual') }}</strong>
-				<span class="shrink-0 rounded-md border border-border px-2 py-1 text-xs text-secondary">
-					{{ selectedIn(manualCandidates) }} / {{ manualCandidates.length }}
-				</span>
-			</label>
-
-			<div class="grid gap-1.5 bg-surface-3 p-2">
+		<SourceCard
+			:title="importSourceName('manual')"
+			:candidates="manualCandidates"
+			:selected-ids="state.selectedCandidateIds.value"
+			@toggle="toggleCandidate"
+			@set-all="setCandidatesSelected(manualCandidates, $event)"
+		>
+			<template #before-list>
 				<div
 					class="flex items-center gap-2 rounded-lg border border-border/60 bg-surface-5 px-3 py-2"
 				>
@@ -184,26 +160,15 @@ function toggleCandidate(id: string) {
 						<template #icon><Plus :size="20" /></template>
 					</UiButton>
 				</div>
+			</template>
 
-				<ItemRow v-for="candidate in manualCandidates" :key="candidate.id" as="label" interactive>
-					<template #leading>
-						<Checkbox
-							:model-value="state.selectedCandidateIds.value.has(candidate.id)"
-							@update:model-value="toggleCandidate(candidate.id)"
-						/>
-						<GameIcon :candidate="candidate" :size="20" />
-					</template>
-					<strong class="block truncate">{{ candidate.name }}</strong>
-					<small class="block text-secondary/70">{{ candidate.executablePath }}</small>
-				</ItemRow>
-
+			<template #empty>
 				<div
-					v-if="manualCandidates.length === 0"
 					class="grid min-h-20 place-items-center rounded-lg border border-dashed border-border-dashed p-4 text-center text-sm text-secondary"
 				>
 					{{ t('sourcesView.noManualGames') }}
 				</div>
-			</div>
-		</section>
+			</template>
+		</SourceCard>
 	</div>
 </template>

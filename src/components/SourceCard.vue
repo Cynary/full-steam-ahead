@@ -27,6 +27,11 @@ const emit = defineEmits<{
 	'set-all': [value: boolean]
 }>()
 
+defineSlots<{
+	'before-list'?: () => unknown
+	empty?: () => unknown
+}>()
+
 const selectedCount = computed(
 	() => props.candidates.filter((c) => props.selectedIds.has(c.id)).length,
 )
@@ -46,6 +51,7 @@ const someSelected = computed(() => selectedCount.value > 0 && !allSelected.valu
 			<Checkbox
 				:model-value="allSelected"
 				:neutral="someSelected"
+				:disabled="candidates.length === 0"
 				@update:model-value="emit('set-all', $event)"
 			/>
 			<SourceIcon v-if="source" :source="source" class="size-5 shrink-0" />
@@ -56,6 +62,8 @@ const someSelected = computed(() => selectedCount.value > 0 && !allSelected.valu
 		</label>
 
 		<div class="grid gap-1.5 bg-surface-3 p-2">
+			<slot name="before-list" />
+
 			<ItemRow v-for="candidate in candidates" :key="candidate.id" as="label" interactive>
 				<template #leading>
 					<Checkbox
@@ -86,6 +94,8 @@ const someSelected = computed(() => selectedCount.value > 0 && !allSelected.valu
 					</div>
 				</template>
 			</ItemRow>
+
+			<slot v-if="candidates.length === 0" name="empty" />
 		</div>
 	</article>
 </template>
