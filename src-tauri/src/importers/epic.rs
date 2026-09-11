@@ -30,6 +30,8 @@ struct EpicManifest {
     catalog_item_id: String,
     #[serde(rename = "bIsManaged")]
     is_managed: bool,
+    #[serde(rename = "bRequiresAuth", default)]
+    requires_auth: bool,
     #[serde(rename = "ExpectingDLCInstalled")]
     expected_dlc: Option<HashMap<String, bool>>,
 }
@@ -50,7 +52,7 @@ impl EpicManifest {
     }
 
     fn needs_launcher(&self) -> bool {
-        if self.is_managed {
+        if self.is_managed || self.requires_auth {
             return true;
         }
         self.expected_dlc
@@ -349,6 +351,7 @@ mod tests {
             catalog_namespace: "ns123".to_string(),
             catalog_item_id: "item456".to_string(),
             is_managed: false,
+            requires_auth: false,
             expected_dlc: None,
         }
     }
@@ -377,6 +380,34 @@ mod tests {
         let mut m = test_manifest();
         m.expected_dlc = Some(HashMap::new());
         assert!(!m.needs_launcher());
+    }
+
+    #[test]
+    fn manifest_auth_requirement_selects_launcher() {
+        for requires_auth in [Some(true), Some(false), None] {
+            let mut value = serde_json::json!({
+                "LaunchExecutable": "Binaries/Win64/game.exe",
+                "ManifestLocation": "/manifests/game.item",
+                "DisplayName": "Test Game",
+                "InstallLocation": "/games/test",
+                "AppName": "testgame123",
+                "CatalogNamespace": "ns123",
+                "CatalogItemId": "item456",
+                "bIsManaged": false,
+                "ExpectingDLCInstalled": {},
+                "bCanRunOffline": true
+            });
+            if let Some(requires_auth) = requires_auth {
+                value["bRequiresAuth"] = requires_auth.into();
+            }
+
+            let manifest: EpicManifest = serde_json::from_value(value).unwrap();
+            assert_eq!(
+                manifest.needs_launcher(),
+                requires_auth.unwrap_or(false),
+                "bRequiresAuth = {requires_auth:?}"
+            );
+        }
     }
 
     #[test]
