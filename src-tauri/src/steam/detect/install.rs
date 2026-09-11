@@ -17,6 +17,7 @@ pub(super) fn is_steam_install(path: &Path) -> bool {
 /// Recognises the Flatpak Steam by the per-app data directory it lives in.
 #[cfg(unix)]
 pub(super) fn is_flatpak_steam(path: &Path) -> bool {
+    let path = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
     path.components()
         .any(|component| component.as_os_str() == std::ffi::OsStr::new("com.valvesoftware.Steam"))
 }
@@ -98,6 +99,41 @@ mod tests {
         assert!(!is_flatpak_steam(Path::new(
             "/home/user/.local/share/Steam"
         )));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn flatpak_steam_is_recognised_through_the_dot_steam_symlink() {
+        let dir = tmp_dir();
+        let real_target = dir
+            .join(".var")
+            .join("app")
+            .join("com.valvesoftware.Steam")
+            .join("data")
+            .join("Steam");
+        fs::create_dir_all(&real_target).unwrap();
+
+        let steam_dir = dir.join(".steam");
+        fs::create_dir_all(&steam_dir).unwrap();
+        let link = steam_dir.join("steam");
+        std::os::unix::fs::symlink(&real_target, &link).unwrap();
+
+        assert!(is_flatpak_steam(&link));
+        let _ = fs::remove_dir_all(&dir);
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn native_steam_through_a_symlink_is_still_not_flatpak() {
+        let dir = tmp_dir();
+        let real_target = dir.join("actual-native-steam");
+        fs::create_dir_all(&real_target).unwrap();
+
+        let link = dir.join("steam-link");
+        std::os::unix::fs::symlink(&real_target, &link).unwrap();
+
+        assert!(!is_flatpak_steam(&link));
+        let _ = fs::remove_dir_all(&dir);
     }
     use std::{
         fs,
