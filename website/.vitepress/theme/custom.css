@@ -1,18 +1,21 @@
 :root {
-	--vp-c-brand-1: #1a9fff;
-	--vp-c-brand-2: #2fabff;
-	--vp-c-brand-3: #47b4ff;
-	--vp-c-brand-soft: #1a9fff24;
-	--vp-c-brand-bg: var(--vp-c-brand-1);
+	--vp-c-brand-1: #1a9fff !important;
+	--vp-c-brand-2: #2fabff !important;
+	--vp-c-brand-3: #47b4ff !important;
+	--vp-c-brand-soft: #1a9fff24 !important;
+	--vp-c-brand-bg: var(--vp-c-brand-1) !important;
 	--vp-nav-logo-height: 32px;
+	--vp-button-brand-bg: var(--vp-c-brand-1) !important;
+	--vp-button-brand-hover-bg: var(--vp-c-brand-2) !important;
+	--vp-button-brand-active-bg: var(--vp-c-brand-3) !important;
 }
 
 .dark {
-	--vp-c-brand-1: #1a9fff;
-	--vp-c-brand-2: #2fabff;
-	--vp-c-brand-3: #47b4ff;
-	--vp-c-brand-soft: #1a9fff2e;
-	--vp-c-brand-bg: var(--vp-c-brand-1);
+	--vp-c-brand-1: #1a9fff !important;
+	--vp-c-brand-2: #2fabff !important;
+	--vp-c-brand-3: #47b4ff !important;
+	--vp-c-brand-soft: #1a9fff2e !important;
+	--vp-c-brand-bg: var(--vp-c-brand-1) !important;
 }
 
 .VPHero .actions a.github-button {
