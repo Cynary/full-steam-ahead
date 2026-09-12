@@ -73,7 +73,7 @@ const primary = computed(() => {
 
 	const v = version.value
 	const suffix = os.value !== 'macos' && arch.value === 'arm64' ? ' (ARM64)' : ''
-	const label = `Install for ${OS_LABELS[os.value]}${suffix}`
+	const label = `Download for ${OS_LABELS[os.value]}${suffix}`
 
 	if (os.value === 'windows') {
 		return { label, url: asset(`full-steam-ahead-${v}-windows-${arch.value}-setup.exe`) }
