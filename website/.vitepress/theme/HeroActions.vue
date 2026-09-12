@@ -241,6 +241,7 @@ a.install-button.os-linux::before {
 }
 
 a.install-button.has-toggle {
+	padding-right: 14px !important;
 	border-top-right-radius: 0 !important;
 	border-bottom-right-radius: 0 !important;
 }
