@@ -1,12 +1,12 @@
-/* eslint-disable simple-import-sort/imports */
+import './custom.css'
 
-import { h } from 'vue'
 import DefaultTheme from 'vitepress/theme'
+import { h } from 'vue'
 
 import DonateButton from './DonateButton.vue'
+import HeroActions from './HeroActions.vue'
 import HeroLogo from './HeroLogo.vue'
 import SiteFooter from './SiteFooter.vue'
-import './custom.css'
 
 export default {
 	extends: DefaultTheme,
@@ -14,6 +14,7 @@ export default {
 		return h(DefaultTheme.Layout, null, {
 			'nav-bar-content-after': () => h(DonateButton),
 			'home-hero-info-before': () => h(HeroLogo),
+			'home-hero-actions-after': () => h(HeroActions),
 			'layout-bottom': () => h(SiteFooter),
 		})
 	},

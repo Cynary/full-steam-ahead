@@ -3,13 +3,6 @@ layout: home
 
 hero:
   tagline: A desktop app to import games from other launchers into Steam.
-  actions:
-    - theme: brand
-      text: Download
-      link: https://github.com/creeperkatze/full-steam-ahead/releases/latest
-    - theme: alt
-      text: GitHub
-      link: https://github.com/creeperkatze/full-steam-ahead
 
 features:
   - title: Wide platform support

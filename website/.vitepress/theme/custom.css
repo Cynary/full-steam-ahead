@@ -15,13 +15,13 @@
 	--vp-c-brand-bg: var(--vp-c-brand-1);
 }
 
-.VPHero .actions a[href*="github.com"] {
+.VPHero .actions a.github-button {
 	display: inline-flex;
 	align-items: center;
 	gap: 8px;
 }
 
-.VPHero .actions a[href*="github.com"]::before {
+.VPHero .actions a.github-button::before {
 	content: "";
 	width: 16px;
 	height: 16px;

@@ -30,6 +30,7 @@ export default defineConfig({
 	themeConfig: {
 		logo: '/icon.svg',
 		siteTitle: false,
+		version,
 		nav: [
 			...(version
 				? [
