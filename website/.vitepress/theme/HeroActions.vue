@@ -116,7 +116,7 @@ const methods = computed(() => {
 					]
 				: []
 
-	return all.filter((option) => option.url !== primary.value.url)
+	return all
 })
 </script>
 
