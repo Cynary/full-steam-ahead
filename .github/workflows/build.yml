@@ -34,7 +34,13 @@ jobs:
           - platform: windows-latest
             args: --bundles nsis,msi
             uploadPlainBinary: true
+          - platform: windows-11-arm
+            args: --bundles nsis,msi
+            uploadPlainBinary: true
           - platform: ubuntu-latest
+            args: --bundles deb,appimage,rpm
+            uploadPlainBinary: false
+          - platform: ubuntu-24.04-arm
             args: --bundles deb,appimage,rpm
             uploadPlainBinary: false
           - platform: macos-latest
