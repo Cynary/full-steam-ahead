@@ -25,7 +25,9 @@ const OS_LABELS: Record<Exclude<Os, null>, string> = {
 const os = ref<Os>(null)
 const arch = ref<Arch>('x64')
 const open = ref(false)
+const openOther = ref(false)
 const root = ref<HTMLElement | null>(null)
+const otherRoot = ref<HTMLElement | null>(null)
 
 function detectOs(): Os {
 	const { os: osResult, device } = new UAParser(navigator.userAgent).getResult()
@@ -43,6 +45,9 @@ function detectArch(): Arch {
 
 function onClickOutside(event: MouseEvent) {
 	if (open.value && root.value && !root.value.contains(event.target as Node)) open.value = false
+	if (openOther.value && otherRoot.value && !otherRoot.value.contains(event.target as Node)) {
+		openOther.value = false
+	}
 }
 
 onMounted(async () => {
@@ -85,38 +90,60 @@ const primary = computed(() => {
 	return { label, url: asset(`full-steam-ahead-${v}-linux-${linuxArch}.AppImage`) }
 })
 
-const methods = computed(() => {
+interface Method {
+	label: string
+	url: string
+}
+
+interface MethodGroup {
+	os: Exclude<Os, null>
+	label: string
+	methods: Method[]
+}
+
+function methodsFor(targetOs: Exclude<Os, null>, v: string): Method[] {
+	if (targetOs === 'windows') {
+		return [
+			{ label: 'Installer (x64)', url: asset(`full-steam-ahead-${v}-windows-x64-setup.exe`) },
+			{
+				label: 'Installer (ARM64)',
+				url: asset(`full-steam-ahead-${v}-windows-arm64-setup.exe`),
+			},
+			{ label: 'MSI (x64)', url: asset(`full-steam-ahead-${v}-windows-x64.msi`) },
+			{ label: 'MSI (ARM64)', url: asset(`full-steam-ahead-${v}-windows-arm64.msi`) },
+			{ label: 'Portable (x64)', url: asset(`full-steam-ahead-${v}-windows-x64.exe`) },
+			{ label: 'Portable (ARM64)', url: asset(`full-steam-ahead-${v}-windows-arm64.exe`) },
+		]
+	}
+	if (targetOs === 'macos') {
+		return [{ label: 'Universal .dmg', url: asset(`full-steam-ahead-${v}-darwin-universal.dmg`) }]
+	}
+	return [
+		{ label: 'AppImage (x64)', url: asset(`full-steam-ahead-${v}-linux-amd64.AppImage`) },
+		{
+			label: 'AppImage (ARM64)',
+			url: asset(`full-steam-ahead-${v}-linux-aarch64.AppImage`),
+		},
+		{ label: '.deb (x64)', url: asset(`full-steam-ahead-${v}-linux-amd64.deb`) },
+		{ label: '.deb (ARM64)', url: asset(`full-steam-ahead-${v}-linux-arm64.deb`) },
+		{ label: '.rpm (x64)', url: asset(`full-steam-ahead-${v}-linux-x86_64.rpm`) },
+		{ label: '.rpm (ARM64)', url: asset(`full-steam-ahead-${v}-linux-aarch64.rpm`) },
+	]
+}
+
+const methods = computed<Method[]>(() => {
 	if (!version.value || !os.value) return []
+	return methodsFor(os.value, version.value)
+})
 
+const otherGroups = computed<MethodGroup[]>(() => {
+	if (!version.value) return []
 	const v = version.value
-	const all =
-		os.value === 'windows'
-			? [
-					{ label: 'Installer (x64)', url: asset(`full-steam-ahead-${v}-windows-x64-setup.exe`) },
-					{
-						label: 'Installer (ARM64)',
-						url: asset(`full-steam-ahead-${v}-windows-arm64-setup.exe`),
-					},
-					{ label: 'MSI (x64)', url: asset(`full-steam-ahead-${v}-windows-x64.msi`) },
-					{ label: 'MSI (ARM64)', url: asset(`full-steam-ahead-${v}-windows-arm64.msi`) },
-					{ label: 'Portable (x64)', url: asset(`full-steam-ahead-${v}-windows-x64.exe`) },
-					{ label: 'Portable (ARM64)', url: asset(`full-steam-ahead-${v}-windows-arm64.exe`) },
-				]
-			: os.value === 'linux'
-				? [
-						{ label: 'AppImage (x64)', url: asset(`full-steam-ahead-${v}-linux-amd64.AppImage`) },
-						{
-							label: 'AppImage (ARM64)',
-							url: asset(`full-steam-ahead-${v}-linux-aarch64.AppImage`),
-						},
-						{ label: '.deb (x64)', url: asset(`full-steam-ahead-${v}-linux-amd64.deb`) },
-						{ label: '.deb (ARM64)', url: asset(`full-steam-ahead-${v}-linux-arm64.deb`) },
-						{ label: '.rpm (x64)', url: asset(`full-steam-ahead-${v}-linux-x86_64.rpm`) },
-						{ label: '.rpm (ARM64)', url: asset(`full-steam-ahead-${v}-linux-aarch64.rpm`) },
-					]
-				: []
 
-	return all
+	const platforms: Exclude<Os, null>[] = ['windows', 'macos', 'linux']
+	const others = os.value ? platforms.filter((p) => p !== os.value) : platforms
+
+	return others.map((p) => ({ os: p, label: OS_LABELS[p], methods: methodsFor(p, v) }))
 })
 </script>
 
@@ -161,6 +188,42 @@ const methods = computed(() => {
 					>
 						{{ option.label }}
 					</a>
+				</div>
+			</div>
+		</div>
+		<div v-if="otherGroups.length" class="action">
+			<div ref="otherRoot" class="other-platforms-group">
+				<button
+					type="button"
+					class="other-platforms-button"
+					:aria-expanded="openOther"
+					@click="openOther = !openOther"
+				>
+					Other platforms
+					<svg viewBox="0 0 24 24" width="14" height="14">
+						<path
+							d="M6 9l6 6 6-6"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+						/>
+					</svg>
+				</button>
+				<div v-if="openOther" class="install-menu">
+					<template v-for="group in otherGroups" :key="group.os">
+						<div class="install-menu-heading">{{ group.label }}</div>
+						<a
+							v-for="option in group.methods"
+							:key="option.url"
+							:href="option.url"
+							class="install-menu-item"
+							@click="openOther = false"
+						>
+							{{ option.label }}
+						</a>
+					</template>
 				</div>
 			</div>
 		</div>
@@ -271,21 +334,64 @@ a.install-button.has-toggle {
 	color: var(--vp-button-brand-hover-text);
 }
 
+.other-platforms-group {
+	position: relative;
+	display: inline-flex;
+	align-items: center;
+}
+
+.other-platforms-button {
+	display: inline-flex;
+	height: 40px;
+	align-items: center;
+	gap: 6px;
+	padding: 0 18px;
+	border: 1px solid var(--vp-c-divider);
+	border-radius: 20px;
+	background-color: transparent;
+	color: var(--vp-c-text-1);
+	font-size: 14px;
+	font-weight: 600;
+	transition:
+		border-color 0.25s,
+		color 0.25s;
+}
+
+.other-platforms-button:hover {
+	border-color: var(--vp-c-brand-1);
+	color: var(--vp-c-brand-1);
+}
+
 .install-menu {
 	position: absolute;
 	top: calc(100% + 8px);
 	left: 0;
 	z-index: 10;
 	display: flex;
-	min-width: 180px;
+	min-width: 200px;
+	max-height: 70vh;
 	flex-direction: column;
 	gap: 2px;
 	padding: 8px;
+	overflow-y: auto;
 	border: 1px solid var(--vp-c-divider);
 	border-radius: 12px;
 	background-color: var(--vp-c-bg-elv);
 	box-shadow: var(--vp-shadow-3);
 	text-align: left;
+}
+
+.install-menu-heading {
+	padding: 8px 10px 2px;
+	font-size: 11px;
+	font-weight: 600;
+	color: var(--vp-c-text-3);
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.install-menu-heading:first-child {
+	padding-top: 2px;
 }
 
 .install-menu-item {
