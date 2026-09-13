@@ -48,6 +48,7 @@ function selectedAsset(candidate: ImportCandidate, kind: ArtworkKind): ArtworkAs
 	const matches = candidate.artwork.proposed.filter((asset) => asset.kind === kind)
 	return (
 		matches.find((asset) => asset.source === 'missing') ??
+		matches.find((asset) => asset.source === 'localFile') ??
 		matches.find((asset) => asset.source === 'steamGridDb') ??
 		matches.find((asset) => asset.source === 'officialSteam') ??
 		matches[0]
