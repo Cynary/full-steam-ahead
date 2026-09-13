@@ -20,6 +20,7 @@ const { t } = useI18n()
 const state = useAppState()
 
 const RELEASES_URL = 'https://github.com/creeperkatze/full-steam-ahead/releases/latest'
+const RELEASE_API_URL = 'https://api.github.com/repos/creeperkatze/full-steam-ahead/releases/tags/'
 const DISMISSED_VERSION_KEY = 'dismissedUpdateVersion'
 
 const version = ref('')
@@ -30,16 +31,34 @@ const showUpdateModal = ref(false)
 const updateStatus = ref<UpdateStatus>('available')
 const updateProgress = ref(0)
 const updateErrorMessage = ref('')
+const updateReleaseNotes = ref('')
 
 async function checkForUpdates() {
 	try {
 		const result = await check()
-		if (result) update.value = result
-		else isLatest.value = true
+		if (result) {
+			update.value = result
+			updateReleaseNotes.value = await fetchReleaseNotes(result.version)
+		} else {
+			isLatest.value = true
+		}
 	} catch {
 		// Silently ignore
 	} finally {
 		updateChecking.value = false
+	}
+}
+
+// The updater manifest's own notes are baked in at build time, before the
+// release description is written, so fetch the published notes instead.
+async function fetchReleaseNotes(updateVersion: string): Promise<string> {
+	try {
+		const response = await fetch(`${RELEASE_API_URL}v${updateVersion}`)
+		if (!response.ok) return ''
+		const release = (await response.json()) as { body?: string }
+		return release.body ?? ''
+	} catch {
+		return ''
 	}
 }
 
@@ -157,6 +176,7 @@ onMounted(async () => {
 		:status="updateStatus"
 		:progress="updateProgress"
 		:error-message="updateErrorMessage"
+		:release-notes="updateReleaseNotes"
 		@update:model-value="dismissUpdateModal"
 		@update="startUpdate"
 		@restart="relaunch"

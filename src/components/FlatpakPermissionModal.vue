@@ -41,8 +41,8 @@ function close() {
 		<div class="mb-5 flex items-start gap-3">
 			<ShieldAlert :size="20" class="mt-0.5 shrink-0 text-accent" />
 			<div>
-				<h2 class="mb-1.5 text-sm font-semibold">{{ t('flatpakPermissionModal.title') }}</h2>
-				<p class="text-xs text-secondary">
+				<h2 class="mb-1.5 text-base font-semibold">{{ t('flatpakPermissionModal.title') }}</h2>
+				<p class="text-sm text-secondary">
 					<template v-if="status === 'granted'">
 						{{ t('flatpakPermissionModal.granted') }}
 					</template>

@@ -136,8 +136,10 @@ async function confirmReset() {
 		<div class="mb-5 flex items-start gap-3">
 			<AlertTriangle :size="20" class="mt-0.5 shrink-0 text-warning" />
 			<div>
-				<h2 class="mb-1.5 text-sm font-semibold">{{ t('settings.data.export.warning.title') }}</h2>
-				<p class="text-xs text-secondary">{{ t('settings.data.export.warning.description') }}</p>
+				<h2 class="mb-1.5 text-base font-semibold">
+					{{ t('settings.data.export.warning.title') }}
+				</h2>
+				<p class="text-sm text-secondary">{{ t('settings.data.export.warning.description') }}</p>
 			</div>
 		</div>
 		<div class="flex justify-end gap-2">
@@ -154,8 +156,8 @@ async function confirmReset() {
 		<div class="mb-5 flex items-start gap-3">
 			<AlertTriangle :size="20" class="mt-0.5 shrink-0 text-warning" />
 			<div>
-				<h2 class="mb-1.5 text-sm font-semibold">{{ t('settings.data.reset.confirm.title') }}</h2>
-				<p class="text-xs text-secondary">{{ t('settings.data.reset.confirm.description') }}</p>
+				<h2 class="mb-1.5 text-base font-semibold">{{ t('settings.data.reset.confirm.title') }}</h2>
+				<p class="text-sm text-secondary">{{ t('settings.data.reset.confirm.description') }}</p>
 			</div>
 		</div>
 		<div class="flex justify-end gap-2">

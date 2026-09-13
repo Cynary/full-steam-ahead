@@ -182,7 +182,7 @@ async function confirmAction() {
 		<div class="mb-5 flex items-start gap-3">
 			<AlertTriangle :size="20" class="mt-0.5 shrink-0 text-warning" />
 			<div>
-				<h2 class="mb-1.5 text-sm font-semibold">
+				<h2 class="mb-1.5 text-base font-semibold">
 					{{
 						confirmingAction === 'delete-all'
 							? t('settings.backups.confirm.deleteAllTitle')
@@ -191,7 +191,7 @@ async function confirmAction() {
 								: t('settings.backups.confirm.restoreTitle')
 					}}
 				</h2>
-				<p class="text-xs text-secondary">
+				<p class="text-sm text-secondary">
 					<template v-if="confirmingAction === 'delete-all'">
 						{{
 							t('settings.backups.confirm.deleteAllBody', { count: backups.length }, backups.length)

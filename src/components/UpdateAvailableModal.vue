@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { AlertCircle, CheckCircle2, Clock, Loader2 } from '@lucide/vue'
+import { openUrl } from '@tauri-apps/plugin-opener'
+import { marked } from 'marked'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import Modal from './Modal.vue'
@@ -14,6 +17,7 @@ const props = defineProps<{
 	status: UpdateStatus
 	progress: number
 	errorMessage: string
+	releaseNotes: string
 }>()
 
 const emit = defineEmits<{
@@ -27,6 +31,17 @@ const { t } = useI18n()
 function close() {
 	if (props.status === 'downloading') return
 	emit('update:modelValue', false)
+}
+
+const renderedNotes = computed(() =>
+	marked.parse(props.releaseNotes.trim(), { async: false, breaks: true, gfm: true }),
+)
+
+function onNotesClick(e: MouseEvent) {
+	const link = (e.target as HTMLElement).closest('a')
+	if (!link) return
+	e.preventDefault()
+	openUrl(link.href)
 }
 </script>
 
@@ -46,10 +61,10 @@ function close() {
 			<AlertCircle v-else-if="status === 'error'" :size="20" class="mt-0.5 shrink-0 text-red-500" />
 			<Clock v-else :size="20" class="mt-0.5 shrink-0 text-accent" />
 			<div class="min-w-0">
-				<h2 class="mb-1.5 text-sm font-semibold">
+				<h2 class="mb-1.5 text-base font-semibold">
 					{{ status === 'ready' ? t('updateModal.readyTitle') : t('updateModal.title') }}
 				</h2>
-				<p class="text-xs text-secondary">
+				<p class="text-sm text-secondary">
 					<template v-if="status === 'error'">
 						{{ t('updateModal.error', { message: errorMessage }) }}
 					</template>
@@ -63,6 +78,14 @@ function close() {
 						{{ t('updateModal.description', { current: currentVersion, latest: latestVersion }) }}
 					</template>
 				</p>
+				<!-- eslint-disable vue/no-v-html -- release notes come from this project's own GitHub releases -->
+				<div
+					v-if="status === 'available' && releaseNotes"
+					class="release-notes mt-3 max-h-40 overflow-y-auto rounded-lg border border-border bg-surface-3 p-2.5 text-sm text-secondary"
+					@click="onNotesClick"
+					v-html="renderedNotes"
+				/>
+				<!-- eslint-enable vue/no-v-html -->
 				<div
 					v-if="status === 'downloading'"
 					class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-4"
@@ -90,3 +113,45 @@ function close() {
 		</div>
 	</Modal>
 </template>
+
+<style>
+.release-notes :is(h1, h2, h3, h4, p, ul, ol) {
+	margin-top: 0.5rem;
+}
+
+.release-notes > :first-child {
+	margin-top: 0;
+}
+
+.release-notes :is(h1, h2, h3, h4) {
+	font-weight: 600;
+	color: var(--color-primary);
+}
+
+.release-notes :is(ul, ol) {
+	padding-left: 1rem;
+}
+
+.release-notes ul {
+	list-style-type: disc;
+}
+
+.release-notes ol {
+	list-style-type: decimal;
+}
+
+.release-notes strong {
+	color: var(--color-primary);
+}
+
+.release-notes a {
+	color: var(--color-accent);
+	text-decoration: underline;
+}
+
+.release-notes code {
+	border-radius: 0.25rem;
+	background-color: var(--color-surface-4);
+	padding: 0.05rem 0.3rem;
+}
+</style>
