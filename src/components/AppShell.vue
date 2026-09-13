@@ -4,7 +4,7 @@ import { getVersion } from '@tauri-apps/api/app'
 import { openUrl } from '@tauri-apps/plugin-opener'
 import { relaunch } from '@tauri-apps/plugin-process'
 import { check, type Update } from '@tauri-apps/plugin-updater'
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, shallowRef, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import KofiIcon from '../assets/icons/kofi.svg?component'
@@ -25,7 +25,7 @@ const DISMISSED_VERSION_KEY = 'dismissedUpdateVersion'
 const version = ref('')
 const updateChecking = ref(true)
 const isLatest = ref(false)
-const update = ref<Update | null>(null)
+const update = shallowRef<Update | null>(null)
 const showUpdateModal = ref(false)
 const updateStatus = ref<UpdateStatus>('available')
 const updateProgress = ref(0)
