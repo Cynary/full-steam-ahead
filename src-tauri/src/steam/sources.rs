@@ -56,79 +56,62 @@ pub fn scan_sources_with_progress(
     Ok(candidates)
 }
 
+type ScanFn = fn(&SteamUser, Option<&Path>) -> AppResult<Vec<ImportCandidate>>;
+
+/// Single source of truth for scan dispatch and `scannable_sources`.
+fn importer_registry() -> Vec<(ImportSource, ScanFn)> {
+    let mut registry: Vec<(ImportSource, ScanFn)> = vec![
+        (ImportSource::Gog, importers::gog::scan),
+        (ImportSource::Epic, importers::epic::scan),
+        (ImportSource::Itch, importers::itch::scan),
+        (ImportSource::Origin, importers::origin::scan),
+        (ImportSource::UbisoftConnect, importers::ubisoft::scan),
+    ];
+
+    #[cfg(windows)]
+    registry.extend([
+        (ImportSource::Playnite, importers::playnite::scan as ScanFn),
+        (ImportSource::Amazon, importers::amazon::scan as ScanFn),
+        (ImportSource::GamePass, importers::gamepass::scan as ScanFn),
+    ]);
+
+    #[cfg(unix)]
+    registry.extend([
+        (ImportSource::Heroic, importers::heroic::scan as ScanFn),
+        (
+            ImportSource::Legendary,
+            importers::legendary::scan as ScanFn,
+        ),
+        (ImportSource::Lutris, importers::lutris::scan as ScanFn),
+        (ImportSource::Flatpak, importers::flatpak::scan as ScanFn),
+        (ImportSource::Bottles, importers::bottles::scan as ScanFn),
+        (
+            ImportSource::MiniGalaxy,
+            importers::minigalaxy::scan as ScanFn,
+        ),
+    ]);
+
+    registry
+}
+
 fn scan_single_source(
     source: &ImportSource,
     user: &SteamUser,
     custom_path: Option<&Path>,
 ) -> Vec<ImportCandidate> {
-    match source {
-        // Cross-platform (each importer handles OS internally)
-        ImportSource::Gog => importers::gog::scan(user, custom_path).unwrap_or_default(),
-        ImportSource::Epic => importers::epic::scan(user, custom_path).unwrap_or_default(),
-        ImportSource::Origin => importers::origin::scan(user, custom_path).unwrap_or_default(),
-        ImportSource::UbisoftConnect => {
-            importers::ubisoft::scan(user, custom_path).unwrap_or_default()
-        }
-        ImportSource::Itch => importers::itch::scan(user, custom_path).unwrap_or_default(),
-
-        // Windows-only
-        #[cfg(windows)]
-        ImportSource::Playnite => importers::playnite::scan(user, custom_path).unwrap_or_default(),
-        #[cfg(windows)]
-        ImportSource::Amazon => importers::amazon::scan(user, custom_path).unwrap_or_default(),
-        #[cfg(windows)]
-        ImportSource::GamePass => importers::gamepass::scan(user, custom_path).unwrap_or_default(),
-
-        // Unix-only
-        #[cfg(unix)]
-        ImportSource::Heroic => importers::heroic::scan(user, custom_path).unwrap_or_default(),
-        #[cfg(unix)]
-        ImportSource::Legendary => {
-            importers::legendary::scan(user, custom_path).unwrap_or_default()
-        }
-        #[cfg(unix)]
-        ImportSource::Lutris => importers::lutris::scan(user, custom_path).unwrap_or_default(),
-        #[cfg(unix)]
-        ImportSource::Flatpak => importers::flatpak::scan(user, custom_path).unwrap_or_default(),
-        #[cfg(unix)]
-        ImportSource::Bottles => importers::bottles::scan(user, custom_path).unwrap_or_default(),
-        #[cfg(unix)]
-        ImportSource::MiniGalaxy => {
-            importers::minigalaxy::scan(user, custom_path).unwrap_or_default()
-        }
-
-        _ => vec![],
-    }
+    importer_registry()
+        .into_iter()
+        .find(|(candidate, _)| candidate == source)
+        .map(|(_, scan)| scan(user, custom_path).unwrap_or_default())
+        .unwrap_or_default()
 }
 
 /// All launcher sources this build knows how to scan for, in OS-appropriate order.
 pub fn scannable_sources() -> Vec<ImportSource> {
-    let mut sources = vec![
-        ImportSource::Gog,
-        ImportSource::Epic,
-        ImportSource::Itch,
-        ImportSource::Origin,
-        ImportSource::UbisoftConnect,
-    ];
-
-    #[cfg(windows)]
-    sources.extend([
-        ImportSource::Playnite,
-        ImportSource::Amazon,
-        ImportSource::GamePass,
-    ]);
-
-    #[cfg(unix)]
-    sources.extend([
-        ImportSource::Heroic,
-        ImportSource::Legendary,
-        ImportSource::Lutris,
-        ImportSource::Flatpak,
-        ImportSource::Bottles,
-        ImportSource::MiniGalaxy,
-    ]);
-
-    sources
+    importer_registry()
+        .into_iter()
+        .map(|(source, _)| source)
+        .collect()
 }
 
 fn enabled_sources(request: &ScanRequest, settings: &Settings) -> Vec<ImportSource> {

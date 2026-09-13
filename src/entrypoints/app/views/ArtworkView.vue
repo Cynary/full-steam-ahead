@@ -31,23 +31,19 @@ const steamGridDbAvailable = computed(
 
 const browsingSlot = ref<{ candidateId: string; kind: ArtworkKind; name: string } | null>(null)
 
-function artworkKey(candidateId: string, kind: ArtworkKind) {
-	return `${candidateId}:${kind}`
+// Sources the user picked explicitly, rather than what the scan proposed.
+const OVERRIDE_SOURCES: ArtworkAsset['source'][] = ['localFile', 'steamGridDb', 'missing']
+
+function isOverrideSource(source: ArtworkAsset['source']): boolean {
+	return OVERRIDE_SOURCES.includes(source)
 }
 
+// Priority order must match selected_artwork_assets in src-tauri/src/steam/artwork/mod.rs.
 function selectedAsset(candidate: ImportCandidate, kind: ArtworkKind): ArtworkAsset | undefined {
-	const localPath = state.customArtwork.value[artworkKey(candidate.id, kind)]
-	if (localPath) {
-		return {
-			kind,
-			pathOrUrl: localPath,
-			source: 'localFile',
-			willReplaceExisting: true,
-		}
-	}
 	const matches = candidate.artwork.proposed.filter((asset) => asset.kind === kind)
 	return (
 		matches.find((asset) => asset.source === 'missing') ??
+		matches.find((asset) => asset.source === 'localFile') ??
 		matches.find((asset) => asset.source === 'steamGridDb') ??
 		matches.find((asset) => asset.source === 'officialSteam') ??
 		matches[0]
@@ -96,10 +92,6 @@ async function pickArtwork(candidateId: string, kind: ArtworkKind) {
 	if (typeof picked !== 'string') return
 
 	removeArtworkOverride(candidateId, kind)
-	state.customArtwork.value = {
-		...state.customArtwork.value,
-		[artworkKey(candidateId, kind)]: picked,
-	}
 	upsertArtworkAsset(candidateId, {
 		kind,
 		pathOrUrl: picked,
@@ -116,9 +108,6 @@ function onSteamGridDbSelect(image: SteamGridDbImage) {
 	if (!browsingSlot.value) return
 	const { candidateId, kind } = browsingSlot.value
 	removeArtworkOverride(candidateId, kind)
-	const updatedCustomArtwork = { ...state.customArtwork.value }
-	delete updatedCustomArtwork[artworkKey(candidateId, kind)]
-	state.customArtwork.value = updatedCustomArtwork
 	upsertArtworkAsset(candidateId, {
 		kind,
 		pathOrUrl: image.url,
@@ -130,9 +119,6 @@ function onSteamGridDbSelect(image: SteamGridDbImage) {
 
 function deleteArtwork(candidateId: string, kind: ArtworkKind) {
 	removeArtworkOverride(candidateId, kind)
-	const updated = { ...state.customArtwork.value }
-	delete updated[artworkKey(candidateId, kind)]
-	state.customArtwork.value = updated
 	upsertArtworkAsset(candidateId, {
 		kind,
 		pathOrUrl: '',
@@ -143,15 +129,12 @@ function deleteArtwork(candidateId: string, kind: ArtworkKind) {
 
 function useOfficialArtwork(candidateId: string, kind: ArtworkKind) {
 	const candidate = state.candidates.value.find((candidate) => candidate.id === candidateId)
-	const official = candidate?.artwork.proposed.find(
+	const hasOfficial = candidate?.artwork.proposed.some(
 		(asset) => asset.kind === kind && asset.source === 'officialSteam',
 	)
-	if (!official) return
+	if (!hasOfficial) return
 
 	removeArtworkOverride(candidateId, kind)
-	const updated = { ...state.customArtwork.value }
-	delete updated[artworkKey(candidateId, kind)]
-	state.customArtwork.value = updated
 }
 
 function upsertArtworkAsset(candidateId: string, asset: ArtworkAsset) {
@@ -164,12 +147,7 @@ function upsertArtworkAsset(candidateId: string, asset: ArtworkAsset) {
 			...candidate,
 			artwork: {
 				...candidate.artwork,
-				mode:
-					asset.source === 'localFile' ||
-					asset.source === 'steamGridDb' ||
-					asset.source === 'missing'
-						? 'localOverride'
-						: candidate.artwork.mode,
+				mode: isOverrideSource(asset.source) ? 'localOverride' : candidate.artwork.mode,
 				proposed: [...proposed, asset],
 			},
 		}
@@ -185,13 +163,7 @@ function removeArtworkOverride(candidateId: string, kind: ArtworkKind) {
 			artwork: {
 				...candidate.artwork,
 				proposed: candidate.artwork.proposed.filter(
-					(asset) =>
-						!(
-							asset.kind === kind &&
-							(asset.source === 'localFile' ||
-								asset.source === 'steamGridDb' ||
-								asset.source === 'missing')
-						),
+					(asset) => !(asset.kind === kind && isOverrideSource(asset.source)),
 				),
 			},
 		}

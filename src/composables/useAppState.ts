@@ -25,13 +25,26 @@ const selectedCandidateIds = ref<Set<string>>(new Set())
 const previewPlan = ref<PreviewPlan | null>(null)
 const previewVersion = ref(0)
 const applyResult = ref<ApplyResult | null>(null)
-const customArtwork = ref<Record<string, string>>({})
 const manualPath = ref('')
 const manualName = ref('')
 
 const availableSources = ref<ImportSource[]>([])
 
-const settings = reactive<Settings>({} as Settings)
+// Placeholder, real defaults live in the Rust backend
+const settings = reactive<Settings>({
+	stopSteam: false,
+	restartSteam: false,
+	createCollections: false,
+	addSelfShortcut: false,
+	steamLocation: null,
+	sources: {},
+	steamGridDb: { enabled: false, apiKey: null, allowNsfw: false },
+	defaultArtworkSource: 'none',
+	launcherMode: 'whenRequired',
+	locale: null,
+	colorScheme: null,
+	updateNotifications: false,
+})
 const settingsReady = ref(false)
 
 let settingsSaveTimer: ReturnType<typeof setTimeout> | undefined
@@ -149,7 +162,6 @@ export function useAppState() {
 		previewPlan,
 		previewVersion,
 		applyResult,
-		customArtwork,
 		manualPath,
 		manualName,
 		settings,
