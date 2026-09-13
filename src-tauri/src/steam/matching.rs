@@ -29,7 +29,7 @@ pub(super) fn existing_shortcut<'a>(
         ];
         let target_matches = options.into_iter().flatten().any(|options| {
             launch_identity(options).is_some_and(|identity| {
-                launch_identity(&shortcut.launch_options).as_ref() == Some(&identity)
+                shortcut_launch_identity(shortcut).as_ref() == Some(&identity)
                     || launch_identity(&shortcut.exe).as_ref() == Some(&identity)
             })
         });
@@ -48,6 +48,37 @@ pub(super) fn existing_shortcut<'a>(
                 )
         })
     })
+}
+
+fn shortcut_launch_identity(shortcut: &ShortcutEntry) -> Option<String> {
+    if let Some(identity) = launch_identity(&shortcut.launch_options) {
+        return Some(identity);
+    }
+    // UWPHook takes a bare AUMID followed by an optional process name.
+    // Interpret that format only for this known wrapper, not arbitrary arguments.
+    let exe = shortcut.exe.trim().trim_matches('"');
+    if !exe
+        .rsplit(['/', '\\'])
+        .next()?
+        .eq_ignore_ascii_case("UWPHook.exe")
+    {
+        return None;
+    }
+    let argument = shortcut
+        .launch_options
+        .split_whitespace()
+        .next()?
+        .trim_matches('"');
+    let (package, application) = argument.split_once('!')?;
+    if !package.contains('_')
+        || application.is_empty()
+        || !argument
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || matches!(c, '.' | '_' | '-' | '!'))
+    {
+        return None;
+    }
+    Some(format!("appx:{argument}"))
 }
 
 fn same_path(left: &str, right: &str) -> bool {
@@ -118,6 +149,28 @@ pub(super) mod tests {
             use_launcher_url: false,
             needs_proton: false,
         }
+    }
+
+    #[test]
+    fn uwphook_matches_the_same_appx_game_without_matching_other_wrappers() {
+        let mut candidate = avatar_candidate();
+        candidate.launch_options =
+            Some("shell:AppsFolder\\38985CA0.MWIIIGame_5bkah9njm3e9g!codShip".into());
+        candidate.url_scheme = None;
+        let mut shortcut = ShortcutEntry {
+            app_id: 123,
+            app_name: "My customized MW3".into(),
+            exe: "\"C:\\Tools\\UWPHook\\UWPHook.exe\"".into(),
+            launch_options: "38985CA0.MWIIIGame_5bkah9njm3e9g!codShip bootstrapper.exe".into(),
+            ..Default::default()
+        };
+        assert!(existing_shortcut(&candidate, std::slice::from_ref(&shortcut)).is_some());
+        shortcut.exe = "unrelated-wrapper.exe".into();
+        assert!(existing_shortcut(&candidate, std::slice::from_ref(&shortcut)).is_none());
+        shortcut.exe = "UWPHook.exe".into();
+        shortcut.launch_options =
+            "38985CA0.MWIIIGame_5bkah9njm3e9g!differentGame bootstrapper.exe".into();
+        assert!(existing_shortcut(&candidate, &[shortcut]).is_none());
     }
 
     #[test]
