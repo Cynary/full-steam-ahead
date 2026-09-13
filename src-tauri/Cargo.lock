@@ -1096,7 +1096,7 @@ dependencies = [
 
 [[package]]
 name = "full-steam-ahead"
-version = "1.3.7"
+version = "1.3.8"
 dependencies = [
  "chrono",
  "crc32fast",
