@@ -122,8 +122,14 @@
 	"updateModal": {
 		"title": "Neue Version verfügbar",
 		"description": "Version {latest} ist verfügbar. Du nutzt derzeit {current}.",
+		"downloading": "Update wird heruntergeladen...",
+		"readyTitle": "Update bereit",
+		"readyDescription": "Version {latest} wurde installiert. Starte neu, um das Update abzuschließen.",
+		"error": "Update konnte nicht installiert werden: {message}",
 		"later": "Später",
-		"download": "Release ansehen"
+		"update": "Aktualisieren",
+		"retry": "Erneut versuchen",
+		"restartNow": "Jetzt neu starten"
 	},
 	"flatpakPermissionModal": {
 		"title": "Steam benötigt eine weitere Berechtigung",

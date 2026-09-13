@@ -2,12 +2,14 @@
 import { CheckCircle2, Clock, Loader2, Star } from '@lucide/vue'
 import { getVersion } from '@tauri-apps/api/app'
 import { openUrl } from '@tauri-apps/plugin-opener'
+import { relaunch } from '@tauri-apps/plugin-process'
+import { check, type Update } from '@tauri-apps/plugin-updater'
 import { onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import KofiIcon from '../assets/icons/kofi.svg?component'
 import { useAppState } from '../composables/useAppState'
-import UpdateAvailableModal from './UpdateAvailableModal.vue'
+import UpdateAvailableModal, { type UpdateStatus } from './UpdateAvailableModal.vue'
 
 defineSlots<{
 	default?: () => unknown
@@ -23,29 +25,17 @@ const DISMISSED_VERSION_KEY = 'dismissedUpdateVersion'
 const version = ref('')
 const updateChecking = ref(true)
 const isLatest = ref(false)
-const latestVersion = ref<string | null>(null)
+const update = ref<Update | null>(null)
 const showUpdateModal = ref(false)
+const updateStatus = ref<UpdateStatus>('available')
+const updateProgress = ref(0)
+const updateErrorMessage = ref('')
 
 async function checkForUpdates() {
 	try {
-		const CACHE_KEY = 'updateCheckCache'
-		const CACHE_TTL = 60 * 60 * 1000
-		const raw = window.localStorage.getItem(CACHE_KEY)
-		const cached = raw ? (JSON.parse(raw) as { tag: string; ts: number }) : null
-		let tag: string
-		if (cached && Date.now() - cached.ts < CACHE_TTL) {
-			tag = cached.tag
-		} else {
-			const res = await fetch(
-				'https://api.github.com/repos/creeperkatze/full-steam-ahead/releases/latest',
-			)
-			if (!res.ok) throw new Error(`HTTP ${res.status}`)
-			const data = (await res.json()) as { tag_name?: string }
-			tag = data.tag_name?.replace(/^v/, '') ?? ''
-			window.localStorage.setItem(CACHE_KEY, JSON.stringify({ tag, ts: Date.now() }))
-		}
-		if (tag && tag !== version.value) latestVersion.value = tag
-		else if (tag) isLatest.value = true
+		const result = await check()
+		if (result) update.value = result
+		else isLatest.value = true
 	} catch {
 		// Silently ignore
 	} finally {
@@ -53,23 +43,46 @@ async function checkForUpdates() {
 	}
 }
 
-watch([latestVersion, () => state.settingsReady.value], ([tag, ready]) => {
-	if (!ready || !tag) return
+watch([update, () => state.settingsReady.value], ([u, ready]) => {
+	if (!ready || !u) return
 	if (!state.settings.updateNotifications) return
-	if (tag === window.localStorage.getItem(DISMISSED_VERSION_KEY)) return
+	if (u.version === window.localStorage.getItem(DISMISSED_VERSION_KEY)) return
 	showUpdateModal.value = true
 })
 
+function openUpdateModal() {
+	showUpdateModal.value = true
+}
+
 function dismissUpdateModal() {
-	if (latestVersion.value) {
-		window.localStorage.setItem(DISMISSED_VERSION_KEY, latestVersion.value)
+	if (update.value) {
+		window.localStorage.setItem(DISMISSED_VERSION_KEY, update.value.version)
 	}
 	showUpdateModal.value = false
 }
 
-function downloadUpdate() {
-	openUrl(RELEASES_URL)
-	dismissUpdateModal()
+async function startUpdate() {
+	if (!update.value) return
+	updateStatus.value = 'downloading'
+	updateProgress.value = 0
+	let totalLength = 0
+	let downloaded = 0
+	try {
+		await update.value.downloadAndInstall((event) => {
+			if (event.event === 'Started') {
+				totalLength = event.data.contentLength ?? 0
+			} else if (event.event === 'Progress') {
+				downloaded += event.data.chunkLength
+				updateProgress.value = totalLength ? downloaded / totalLength : 0
+			} else if (event.event === 'Finished') {
+				updateProgress.value = 1
+			}
+		})
+		updateStatus.value = 'ready'
+	} catch (error) {
+		updateErrorMessage.value = error instanceof Error ? error.message : String(error)
+		updateStatus.value = 'error'
+	}
 }
 
 onMounted(async () => {
@@ -103,10 +116,10 @@ onMounted(async () => {
 					<span class="truncate">{{ t('appShell.latestVersion') }}</span>
 				</button>
 				<button
-					v-else-if="latestVersion"
+					v-else-if="update"
 					type="button"
 					class="flex min-w-0 cursor-pointer items-center gap-1 text-sm text-yellow-500 transition-colors hover:text-yellow-300"
-					@click="openUrl(RELEASES_URL)"
+					@click="openUpdateModal"
 				>
 					<Clock class="size-3.5 shrink-0" aria-hidden="true" />
 					<span class="truncate">{{ t('appShell.updateAvailable') }}</span>
@@ -137,11 +150,15 @@ onMounted(async () => {
 	</main>
 
 	<UpdateAvailableModal
-		v-if="latestVersion"
+		v-if="update"
 		:model-value="showUpdateModal"
 		:current-version="version"
-		:latest-version="latestVersion"
+		:latest-version="update.version"
+		:status="updateStatus"
+		:progress="updateProgress"
+		:error-message="updateErrorMessage"
 		@update:model-value="dismissUpdateModal"
-		@download="downloadUpdate"
+		@update="startUpdate"
+		@restart="relaunch"
 	/>
 </template>

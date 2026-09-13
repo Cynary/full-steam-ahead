@@ -122,8 +122,14 @@
 	"updateModal": {
 		"title": "New version available",
 		"description": "Version {latest} is available. You're currently on {current}.",
+		"downloading": "Downloading update...",
+		"readyTitle": "Update ready",
+		"readyDescription": "Version {latest} has been installed. Restart to finish updating.",
+		"error": "Couldn't install the update: {message}",
 		"later": "Later",
-		"download": "View release"
+		"update": "Update",
+		"retry": "Retry",
+		"restartNow": "Restart now"
 	},
 	"flatpakPermissionModal": {
 		"title": "Steam needs one more permission",

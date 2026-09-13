@@ -1,42 +1,92 @@
 <script setup lang="ts">
-import { Clock } from '@lucide/vue'
+import { AlertCircle, CheckCircle2, Clock, Loader2 } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 
 import Modal from './Modal.vue'
 import UiButton from './ui/Button.vue'
 
-defineProps<{
+export type UpdateStatus = 'available' | 'downloading' | 'ready' | 'error'
+
+const props = defineProps<{
 	modelValue: boolean
 	currentVersion: string
 	latestVersion: string
+	status: UpdateStatus
+	progress: number
+	errorMessage: string
 }>()
 
 const emit = defineEmits<{
 	'update:modelValue': [value: boolean]
-	download: []
+	update: []
+	restart: []
 }>()
 
 const { t } = useI18n()
+
+function close() {
+	if (props.status === 'downloading') return
+	emit('update:modelValue', false)
+}
 </script>
 
 <template>
-	<Modal :model-value="modelValue" @update:model-value="emit('update:modelValue', $event)">
+	<Modal :model-value="modelValue" @update:model-value="close">
 		<div class="mb-5 flex items-start gap-3">
-			<Clock :size="20" class="mt-0.5 shrink-0 text-accent" />
-			<div>
-				<h2 class="mb-1.5 text-sm font-semibold">{{ t('updateModal.title') }}</h2>
+			<Loader2
+				v-if="status === 'downloading'"
+				:size="20"
+				class="mt-0.5 shrink-0 animate-spin text-accent"
+			/>
+			<CheckCircle2
+				v-else-if="status === 'ready'"
+				:size="20"
+				class="mt-0.5 shrink-0 text-green-500"
+			/>
+			<AlertCircle v-else-if="status === 'error'" :size="20" class="mt-0.5 shrink-0 text-red-500" />
+			<Clock v-else :size="20" class="mt-0.5 shrink-0 text-accent" />
+			<div class="min-w-0">
+				<h2 class="mb-1.5 text-sm font-semibold">
+					{{ status === 'ready' ? t('updateModal.readyTitle') : t('updateModal.title') }}
+				</h2>
 				<p class="text-xs text-secondary">
-					{{ t('updateModal.description', { current: currentVersion, latest: latestVersion }) }}
+					<template v-if="status === 'error'">
+						{{ t('updateModal.error', { message: errorMessage }) }}
+					</template>
+					<template v-else-if="status === 'downloading'">
+						{{ t('updateModal.downloading') }}
+					</template>
+					<template v-else-if="status === 'ready'">
+						{{ t('updateModal.readyDescription', { latest: latestVersion }) }}
+					</template>
+					<template v-else>
+						{{ t('updateModal.description', { current: currentVersion, latest: latestVersion }) }}
+					</template>
 				</p>
+				<div
+					v-if="status === 'downloading'"
+					class="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-surface-4"
+				>
+					<div
+						class="h-full rounded-full bg-accent transition-all"
+						:style="{ width: `${Math.round(progress * 100)}%` }"
+					/>
+				</div>
 			</div>
 		</div>
 		<div class="flex justify-end gap-2">
-			<UiButton variant="ghost" @click="emit('update:modelValue', false)">
-				{{ t('updateModal.later') }}
+			<UiButton v-if="status === 'ready'" variant="primary" @click="emit('restart')">
+				{{ t('updateModal.restartNow') }}
 			</UiButton>
-			<UiButton variant="primary" @click="emit('download')">
-				{{ t('updateModal.download') }}
-			</UiButton>
+			<template v-else>
+				<UiButton variant="ghost" :disabled="status === 'downloading'" @click="close">
+					{{ t('updateModal.later') }}
+				</UiButton>
+				<UiButton variant="primary" :disabled="status === 'downloading'" @click="emit('update')">
+					<Loader2 v-if="status === 'downloading'" :size="14" class="animate-spin" />
+					{{ status === 'error' ? t('updateModal.retry') : t('updateModal.update') }}
+				</UiButton>
+			</template>
 		</div>
 	</Modal>
 </template>
